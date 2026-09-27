@@ -1,16 +1,19 @@
-"""Builds PAMOJA_Financial_Model_v0.1.xlsx (simple fund-flow model).
+"""Builds PAMOJA_Financial_Model_v0.2.xlsx (simple fund-flow model).
 Run: python3 model/build_model.py   (needs openpyxl)
 All numbers in blue on yellow are inputs. Everything else is a formula."""
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter as col
 
-OUT = "model/PAMOJA_Financial_Model_v0.1.xlsx"
+VERSION = "v0.2"
+OUT = f"model/PAMOJA_Financial_Model_{VERSION}.xlsx"
+MONTHS = 24          # year 1 (lending) + year 2 (loans made late in year 1 finish)
 wb = Workbook()
 
 INPUT = PatternFill("solid", fgColor="FFF2CC")
 HEAD = PatternFill("solid", fgColor="1C5A3F")
 SUB = PatternFill("solid", fgColor="DCEBE1")
+GREY = PatternFill("solid", fgColor="EEEEEE")
 BLUE = Font(color="0000FF")
 BOLD = Font(bold=True)
 WHITE = Font(bold=True, color="FFFFFF")
@@ -39,42 +42,111 @@ def inp(c, fmt):
     c.fill, c.font, c.number_format, c.border = INPUT, BLUE, fmt, BOX
 
 
+def section(ws, r, text, ncols=4):
+    ws.cell(row=r, column=1, value=text).font = BOLD
+    for c in range(1, ncols + 1):
+        ws.cell(row=r, column=c).fill = SUB
+
+
+def table(ws, start, rows, ncols=4):
+    """rows: (key, label, value, fmt, unit/from, note). key=None -> section.
+    Returns {key: row number} so formulas can refer to rows by name."""
+    at = {}
+    for r, (key, label, val, fmt, unit, note) in enumerate(rows, start):
+        if key is None:
+            section(ws, r, label, ncols)
+            continue
+        at[key] = r
+        ws.cell(row=r, column=1, value=label)
+        c = ws.cell(row=r, column=2)
+        if callable(val):
+            val = val(at)
+        c.value = val
+        if isinstance(val, str) and val.startswith("="):
+            c.number_format, c.border = fmt, BOX
+        else:
+            inp(c, fmt)
+        ws.cell(row=r, column=3, value=unit)
+        ws.cell(row=r, column=4, value=note)
+    return at
+
+
+# ---------------------------------------------------------------- Open questions
+QUESTIONS = [
+    # (number, question, why it matters, added in)
+    (1, "Is the Loan:Savings cap on the loan itself (loan must not exceed 0.5 x the CMG's savings)?",
+     "Sets the loan cap per CMG on the Districts sheet.", "v0.1"),
+    (2, "Is interest flat or on the reducing balance? What is TAMISEMI's interest ceiling?",
+     "Drives all interest income, and so the default budget.", "v0.1"),
+    (3, "Are the TAMISEMI, region and LGA amounts a % of interest, or a % of the loan amount?",
+     "Changes how much interest is left for the default budget and the lender.", "v0.1"),
+    (4, "Can repayments be lent out again in the same year? If yes, to whom: new CMGs or second loans to the same CMGs?",
+     "Re-lending raises total lending but ties money up longer; the Districts sheet only allocates the first round.", "v0.1"),
+    (5, "Are the $2m lender and $2m CMG incentive pots paid in full each year, or spread over several years?",
+     "Decides whether the corpus stays at $20m every year.", "v0.1"),
+    (6, "When does TAMISEMI's annual cycle end (e.g. financial year July-June)? At that date, must the corpus be back as CASH, or can loans still running count?",
+     "With lending across the cycle and tenures up to 12 months, some money is always out on loan at year end.", "v0.2"),
+    (7, "Do CMG savings cycles start in different months (staggered), or all at once?",
+     "A loan must end before the CMG's share-out, so a 12-month loan only fits a CMG that borrows at the very start of its cycle.", "v0.2"),
+    (8, "With the lender discount removed, is the lender's only income the interest margin plus the lender incentives? Does the lender pay anything for the TAMISEMI advance?",
+     "Shows whether lending is worth it for the lender.", "v0.2"),
+    (9, "Should the 15-working-day disbursement rule apply to each new advance across the cycle, not only the first?",
+     "Sets how fast money can go out each month.", "v0.2"),
+    (10, "Are defaulted loans written off at maturity, or chased into the next year (recoveries)?",
+     "Recoveries would add money back to the corpus later.", "v0.2"),
+]
+
 # ---------------------------------------------------------------- Read me
 rm = wb.active
 rm.title = "Read me"
-title(rm, "PAMOJA simplified financial model - v0.1 (draft)",
+title(rm, f"PAMOJA simplified financial model - {VERSION} (draft)",
       "How $24m flows TAMISEMI -> Lenders -> CMGs as loans, and back as repayments.")
 lines = [
     "",
     "HOW TO USE",
     "1. Change the yellow cells with blue numbers only. Everything else is a formula.",
-    "2. Inputs: fund size and assumptions. Districts: CMG numbers, savings and loan size per LGA.",
-    "3. Fund flow: one annual cycle as a waterfall, with a check that the corpus is restored.",
-    "4. Monthly cycle: when loans go out and come back over 12 months.",
+    "2. Inputs: fund size, lending rules, lending timing and the split of interest.",
+    "3. Districts: CMG numbers, savings and loan size per LGA.",
+    "4. Monthly cycle: when loans go out and come back over 24 months (year 1 lending, year 2 run-off).",
+    "5. Fund flow: totals for all loans made in the year, with a check that the corpus is restored.",
+    "6. Open questions: things to settle. Glossary: acronyms and terms.",
     "",
     "IMPORTANT",
     "- All district data and rates are DUMMY placeholders. Replace them with real figures.",
-    "- The split of interest (default budget, discounts, TAMISEMI, region, LGA) is a first guess to confirm.",
+    "- The split of interest is a first guess to confirm.",
     "",
-    "SIMPLE LOGIC (v0.1)",
+    "CHANGES IN v0.2",
+    "- Lender discount removed. The lender keeps the margin (what is left after the other shares).",
+    "- Lenders can make new loans in any month of the year, up to a last month you choose.",
+    "- Loan term can be up to 12 months (maximum tenure is an input).",
+    "- Repayments can be lent out again (re-lending %, set to 0% to switch off).",
+    "- Monthly sheet runs 24 months so loans made late in year 1 can finish in year 2.",
+    "- Year-end snapshot: cash back in the fund vs money still out on loan at month 12.",
+    "",
+    "SIMPLE LOGIC",
     "- Lending corpus = Total fund - Lender incentives - CMG incentives.",
     "- Loan per CMG = the smaller of: average loan asked for, or savings x maximum Loan:Savings ratio.",
-    "- Demand per district = number of CMGs x loan per CMG.",
     "- If total demand is more than the corpus, every district is scaled down by the same %.",
-    "- Interest is flat: rate x loan x term. Defaulted loans pay no principal and no interest.",
+    "- Loans are repaid in equal monthly instalments over the term, starting the month after the loan.",
+    "- Interest is flat: rate x loan x term, collected with each instalment.",
+    "- Defaults: the default rate is taken off every instalment (no principal or interest).",
+    "- Re-lending: a % of principal repaid in one month is lent out again the next month, up to the last lending month.",
     "- The corpus is restored if the default budget taken from interest covers the defaulted principal.",
     "",
-    "NOT YET IN THE MODEL (next steps)",
-    "- Re-lending repayments within the same cycle (revolving fund).",
-    "- Multiple lenders per LGA; different terms per district; region-level roll-up.",
-    "- Timing of incentive payments; LGA service fee formula; risk-share formula (Q12).",
-    "- Exchange rate (TZS / USD) and inflation.",
+    "KEY TRADE-OFF",
+    "- For all money to be back as CASH by month 12, the last loan must go out by month (12 - term).",
+    "- With a 12-month term, that means lending only in month 0 - so lending across the cycle means",
+    "  some of the corpus is still out on loan at year end. See question 6.",
     "",
-    "See the 'Glossary' sheet for all acronyms and terms.",
+    "NOT YET IN THE MODEL",
+    "- Different terms per loan or district; staggered CMG cycles.",
+    "- Multiple lenders per LGA; region-level roll-up.",
+    "- Timing of incentive payments; LGA service fee formula; risk-share formula (Q12 in the flowchart).",
+    "- Exchange rate (TZS / USD) and inflation.",
 ]
 for i, t in enumerate(lines, 4):
     rm.cell(row=i, column=1, value=t)
-    if t.isupper() and t:
+    if t and t.upper() == t and not t.startswith("-"):
         rm.cell(row=i, column=1).font = BOLD
 rm.column_dimensions["A"].width = 110
 
@@ -82,52 +154,53 @@ rm.column_dimensions["A"].width = 110
 ip = wb.create_sheet("Inputs")
 title(ip, "Inputs", "Yellow cells are inputs. Dummy values - replace with agreed figures.")
 header(ip, 4, ["Item", "Value", "Unit", "Note"])
-rows = [
-    ("FUND", None, None, None),
-    ("Total PAMOJA fund", 24_000_000, USD, "From TAMISEMI"),
-    ("Lender incentives (set aside)", 2_000_000, USD, "Not lent out"),
-    ("CMG incentives (set aside)", 2_000_000, USD, "Not lent out"),
-    ("Lending corpus", "=B6-B7-B8", USD, "Formula: money available to lend"),
-    ("LENDING RULES", None, None, None),
-    ("Maximum Loan:Savings ratio", 0.5, "0.00", "Loan must not exceed this x CMG savings"),
-    ("Interest rate (flat, per year)", 0.18, PCT, "Placeholder; must be at or below TAMISEMI ceiling"),
-    ("Loan term", 6, "0", "Months. Must end before the CMG share-out"),
-    ("Portfolio default rate (budget)", 0.05, PCT, "% of principal lent that is not repaid"),
-    ("SPLIT OF INTEREST COLLECTED", None, None, None),
-    ("Default budget (loss reserve)", 0.30, PCT, "Returned to fund to cover defaults"),
-    ("Lender discount", 0.15, PCT, "Placeholder"),
-    ("TAMISEMI share", 0.10, PCT, "Placeholder"),
-    ("Region share", 0.05, PCT, "Placeholder"),
-    ("LGA share", 0.05, PCT, "Placeholder"),
-    ("Lender net margin (remainder)", "=1-SUM(B16:B20)", PCT, "Formula: what is left for the lender"),
-    ("Check: split adds to 100% or less", '=IF(B21>=0,"OK","ERROR: over 100%")', "@", ""),
-]
-for r, (a, b, fmt, n) in enumerate(rows, 5):
-    ip.cell(row=r, column=1, value=a)
-    if b is None:
-        ip.cell(row=r, column=1).font = BOLD
-        for c in range(1, 5):
-            ip.cell(row=r, column=c).fill = SUB
-        continue
-    c = ip.cell(row=r, column=2, value=b)
-    if isinstance(b, str) and b.startswith("="):
-        c.number_format, c.border, c.font = fmt, BOX, BOLD
-    else:
-        inp(c, fmt)
-    ip.cell(row=r, column=3, value={USD: "USD", PCT: "%"}.get(fmt, ""))
-    ip.cell(row=r, column=4, value=n)
-ip["C13"] = "months"
-ip["C11"] = "x"
-for L, w in zip("ABCD", (38, 16, 8, 55)):
+I = table(ip, 5, [
+    (None, "FUND", None, None, None, None),
+    ("fund", "Total PAMOJA fund", 24_000_000, USD, "USD", "From TAMISEMI"),
+    ("linc", "Lender incentives (set aside)", 2_000_000, USD, "USD", "Not lent out"),
+    ("cinc", "CMG incentives (set aside)", 2_000_000, USD, "USD", "Not lent out"),
+    ("corpus", "Lending corpus", lambda a: f"=B{a['fund']}-B{a['linc']}-B{a['cinc']}", USD, "USD",
+     "Money available to lend"),
+    (None, "LENDING RULES", None, None, None, None),
+    ("ratio", "Maximum Loan:Savings ratio", 0.5, "0.00", "x", "Loan must not exceed this x CMG savings"),
+    ("rate", "Interest rate (flat, per year)", 0.18, PCT, "%", "Placeholder; must be at or below TAMISEMI ceiling"),
+    ("maxterm", "Maximum loan tenure", 12, "0", "months", "Policy limit"),
+    ("term", "Loan term used in the model", 6, "0", "months", "Must be 1 to the maximum tenure"),
+    ("termok", "Check: term within maximum",
+     lambda a: f'=IF(AND(B{a["term"]}>=1,B{a["term"]}<=B{a["maxterm"]}),"OK","ERROR: term above maximum tenure")',
+     "@", "", ""),
+    ("def", "Portfolio default rate (budget)", 0.05, PCT, "%", "% of principal lent that is not repaid"),
+    (None, "LENDING TIMING (across the cycle)", None, None, None, None),
+    ("lastm", "Last month lenders can make new loans", 12, "0", "month", "1 to 12. Spread of new loans is set on 'Monthly cycle'"),
+    ("relend", "% of principal repaid that is lent out again", 0.0, PCT, "%", "0% = no re-lending (see question 4)"),
+    ("cashm", "Latest month to lend if all cash must be back by month 12",
+     lambda a: f"=MAX(0,12-B{a['term']})", "0", "month", "0 means only at the very start of the year"),
+    (None, "SPLIT OF INTEREST COLLECTED", None, None, None, None),
+    ("sdef", "Default budget (loss reserve)", 0.30, PCT, "%", "Returned to fund to cover defaults"),
+    ("stam", "TAMISEMI share", 0.10, PCT, "%", "Placeholder"),
+    ("sreg", "Region share", 0.05, PCT, "%", "Placeholder"),
+    ("slga", "LGA share", 0.05, PCT, "%", "Placeholder"),
+    ("slen", "Lender margin (remainder)", lambda a: f"=1-SUM(B{a['sdef']}:B{a['slga']})", PCT, "%",
+     "What is left for the lender"),
+    ("splitok", "Check: split adds to 100% or less",
+     lambda a: f'=IF(B{a["slen"]}>=0,"OK","ERROR: over 100%")', "@", "", ""),
+])
+for key in ("corpus", "slen", "termok", "splitok", "cashm"):
+    ip[f"B{I[key]}"].font = BOLD
+for L, w in zip("ABCD", (48, 16, 8, 58)):
     ip.column_dimensions[L].width = w
 
-# Named refs used below
-CORPUS, RATIO, RATE, TERM, DEF = "Inputs!$B$9", "Inputs!$B$11", "Inputs!$B$12", "Inputs!$B$13", "Inputs!$B$14"
+
+def R(key):
+    return f"Inputs!$B${I[key]}"
+
+
+CORPUS, RATIO, RATE, TERM, DEF = R("corpus"), R("ratio"), R("rate"), R("term"), R("def")
 
 # ---------------------------------------------------------------- Districts
 ds = wb.create_sheet("Districts")
 title(ds, "Allocation by district (LGA)",
-      "Dummy data. Add real LGAs in the yellow cells; up to 20 rows.")
+      "Dummy data. Add real LGAs in the yellow cells; up to 20 rows. Allocates the first round of lending only.")
 header(ds, 4, ["District (LGA)", "Number of CMGs", "Average savings per CMG (USD)",
                "Average loan asked per CMG (USD)", "Loan cap per CMG = savings x ratio",
                "Loan per CMG (smaller of the two)", "Loan:Savings ratio used",
@@ -137,6 +210,7 @@ sample = [("District A", 2500, 4000, 2500), ("District B", 1800, 3000, 2000),
           ("District C", 3200, 5000, 3000), ("District D", 1500, 3500, 1500),
           ("District E", 2000, 4500, 2500)]
 FIRST, LAST = 5, 24
+T = LAST + 1
 for r in range(FIRST, LAST + 1):
     data = sample[r - FIRST] if r - FIRST < len(sample) else (None, None, None, None)
     ds.cell(row=r, column=1, value=data[0]).fill = INPUT
@@ -146,128 +220,196 @@ for r in range(FIRST, LAST + 1):
     ds.cell(row=r, column=6, value=f'=IF(B{r}="","",MIN(D{r},E{r}))').number_format = USD
     ds.cell(row=r, column=7, value=f'=IF(B{r}="","",F{r}/C{r})').number_format = "0.00"
     ds.cell(row=r, column=8, value=f'=IF(B{r}="",0,B{r}*F{r})').number_format = USD
-    ds.cell(row=r, column=9, value=f'=IF(B{r}="",0,H{r}*$B$28)').number_format = USD
+    ds.cell(row=r, column=9, value=f'=IF(B{r}="",0,H{r}*$B${T + 3})').number_format = USD
     ds.cell(row=r, column=10, value=f'=IF(B{r}="","",I{r}/{CORPUS})').number_format = PCT
-T = LAST + 1
 ds.cell(row=T, column=1, value="TOTAL").font = BOLD
 for c, f in ((2, NUM), (8, USD), (9, USD), (10, PCT)):
     L = col(c)
     cell = ds.cell(row=T, column=c, value=f"=SUM({L}{FIRST}:{L}{LAST})")
     cell.number_format, cell.font = f, BOLD
-ds["A27"], ds["B27"] = "Lending corpus", f"={CORPUS}"
-ds["A28"], ds["B28"] = "Scale factor (1 = full demand met)", f"=IF(H{T}=0,0,MIN(1,B27/H{T}))"
-ds["A29"], ds["B29"] = "Corpus not used", f"=B27-I{T}"
-ds["A30"], ds["B30"] = "Demand not met", f"=H{T}-I{T}"
-for a, f in (("B27", USD), ("B28", "0.00"), ("B29", USD), ("B30", USD)):
-    ds[a].number_format, ds[a].font = f, BOLD
+ds[f"A{T+2}"], ds[f"B{T+2}"] = "Lending corpus", f"={CORPUS}"
+ds[f"A{T+3}"], ds[f"B{T+3}"] = "Scale factor (1 = full demand met)", f"=IF(H{T}=0,0,MIN(1,B{T+2}/H{T}))"
+ds[f"A{T+4}"], ds[f"B{T+4}"] = "Corpus not used", f"=B{T+2}-I{T}"
+ds[f"A{T+5}"], ds[f"B{T+5}"] = "Demand not met", f"=H{T}-I{T}"
+for r, f in ((T + 2, USD), (T + 3, "0.00"), (T + 4, USD), (T + 5, USD)):
+    ds[f"B{r}"].number_format, ds[f"B{r}"].font = f, BOLD
 ds.column_dimensions["A"].width = 34
 for c in range(2, 11):
     ds.column_dimensions[col(c)].width = 17
 ds.freeze_panes = "B5"
-
-# ---------------------------------------------------------------- Fund flow
-ff = wb.create_sheet("Fund flow")
-title(ff, "Fund flow for one annual cycle",
-      "TAMISEMI -> Lenders -> CMGs -> back. All formulas.")
-header(ff, 4, ["Step", "Amount (USD)", "From -> To", "How it is worked out"])
-L = f"Districts!$I${T}"
-flow = [
-    ("1. MONEY OUT", None, None, None),
-    ("Total PAMOJA fund", "=Inputs!B6", "TAMISEMI", ""),
-    ("Lender incentives set aside", "=Inputs!B7", "TAMISEMI -> Lenders", "Paid later, not lent"),
-    ("CMG incentives set aside", "=Inputs!B8", "TAMISEMI -> CMGs", "Paid later, not lent"),
-    ("Advance to lenders (= loans made)", f"={L}", "TAMISEMI -> Lenders", "Sum of district allocations"),
-    ("Corpus not lent (returned)", "=Inputs!B9-B9", "Lenders -> TAMISEMI", "Unused advance"),
-    ("Loans to CMGs", "=B9", "Lenders -> CMGs", "Advance lent in full"),
-    ("2. MONEY BACK FROM CMGs", None, None, None),
-    ("Principal defaulted", f"=B11*{DEF}", "", "Loans x default rate"),
-    ("Principal repaid", "=B11-B13", "CMGs -> Lenders", "Loans - defaults"),
-    ("Interest collected", f"=B14*{RATE}*{TERM}/12", "CMGs -> Lenders", "Flat: repaid loans x rate x term/12"),
-    ("Total repayments", "=B14+B15", "CMGs -> Lenders", ""),
-    ("3. SPLIT OF INTEREST", None, None, None),
-    ("Default budget (loss reserve)", "=B15*Inputs!B16", "Lenders -> TAMISEMI", ""),
-    ("Lender discount", "=B15*Inputs!B17", "Kept by lenders", ""),
-    ("TAMISEMI share", "=B15*Inputs!B18", "Lenders -> TAMISEMI", ""),
-    ("Region share", "=B15*Inputs!B19", "-> Region", ""),
-    ("LGA share", "=B15*Inputs!B20", "-> LGA", ""),
-    ("Lender net margin", "=B15*Inputs!B21", "Kept by lenders", "Remainder"),
-    ("4. CORPUS CHECK (end of cycle)", None, None, None),
-    ("Corpus at start", "=Inputs!B9", "", ""),
-    ("Principal repaid to TAMISEMI", "=B14", "Lenders -> TAMISEMI", ""),
-    ("Corpus not lent", "=B10", "", ""),
-    ("Default budget added back", "=B18", "", "Covers the defaulted principal"),
-    ("Corpus at end", "=B26+B27+B28", "", ""),
-    ("Gap (end - start)", "=B29-B25", "", "Negative = corpus NOT restored"),
-    ("Result", '=IF(B30>=-0.5,"Corpus restored","Corpus NOT restored - raise interest share for defaults or rate")', "", ""),
-    ("Default budget needed (% of interest)", "=IF(B15=0,0,B13/B15)", "", "Minimum share of interest to cover defaults"),
-    ("Break-even default rate", f"=Inputs!B16*{RATE}*{TERM}/12/(1+Inputs!B16*{RATE}*{TERM}/12)", "", "Highest default rate the current split can cover"),
-]
-for r, (a, b, ft, n) in enumerate(flow, 5):
-    ff.cell(row=r, column=1, value=a)
-    if b is None:
-        ff.cell(row=r, column=1).font = BOLD
-        for c in range(1, 5):
-            ff.cell(row=r, column=c).fill = SUB
-        continue
-    c = ff.cell(row=r, column=2, value=b)
-    c.number_format, c.border = USD, BOX
-    ff.cell(row=r, column=3, value=ft)
-    ff.cell(row=r, column=4, value=n)
-ff["B32"].number_format = PCT
-ff["B33"].number_format = PCT
-for a in ("A29", "B29", "A31", "B31"):
-    ff[a].font = BOLD
-for Lc, w in zip("ABCD", (40, 18, 24, 48)):
-    ff.column_dimensions[Lc].width = w
+ALLOC = f"Districts!$I${T}"
 
 # ---------------------------------------------------------------- Monthly
 mo = wb.create_sheet("Monthly cycle")
-title(mo, "Monthly cycle (12 months)",
-      "Enter the % of total loans disbursed each month (yellow). Repayments are equal monthly instalments over the loan term.")
-header(mo, 4, ["Line"] + [f"M{m}" for m in range(1, 13)] + ["Total"])
-labels = ["Month number", "% of loans disbursed this month", "Loans disbursed",
-          "Principal due", "Principal repaid (after defaults)", "Interest collected",
-          "Loans outstanding (end of month)", "Fund cash on hand (end of month)",
-          "Warning: loan still running after month 12"]
-for i, t in enumerate(labels, 5):
-    mo.cell(row=i, column=1, value=t)
-pattern = [0.4, 0.3, 0.2, 0.1] + [0] * 8
-for m in range(1, 13):
-    c = col(m + 1)
-    mo[f"{c}5"] = m
-    inp(mo[f"{c}6"], PCT)
-    mo[f"{c}6"] = pattern[m - 1]
-    mo[f"{c}7"] = f"={c}6*Districts!$I${T}"
-    # principal due in month m from loans made in earlier months d where 1 <= m-d <= term
-    rng = "$B$5:$M$5"
-    mo[f"{c}8"] = (f"=SUMPRODUCT(({c}$5-{rng}>=1)*({c}$5-{rng}<={TERM})*$B$7:$M$7)/{TERM}")
-    mo[f"{c}9"] = f"={c}8*(1-{DEF})"
-    mo[f"{c}10"] = f"={c}9*{RATE}/12*{TERM}"
-    prev = "0" if m == 1 else f"{col(m)}11"
-    mo[f"{c}11"] = f"={prev}+{c}7-{c}8"
-    prevcash = "Inputs!$B$9" if m == 1 else f"{col(m)}12"
-    mo[f"{c}12"] = f"={prevcash}-{c}7+{c}9+{c}10*Inputs!$B$16"
-    for rr in (7, 8, 9, 10, 11, 12):
-        mo[f"{c}{rr}"].number_format = USD
-    mo[f"{c}5"].font = BOLD
-mo["N6"] = "=SUM(B6:M6)"; mo["N6"].number_format = PCT
-for rr in (7, 8, 9, 10):
-    mo[f"N{rr}"] = f"=SUM(B{rr}:M{rr})"; mo[f"N{rr}"].number_format = USD
-mo["B13"] = f'=IF(SUMPRODUCT(($B$5:$M$5+{TERM}>12)*($B$7:$M$7))>0,"YES - some loans end after the cycle. Move disbursement earlier or shorten the term.","No - all loans end within the cycle")'
-mo["A15"] = "Latest month a loan can go out and still be repaid by month 12:"
-mo["B15"] = f"=12-{TERM}"
-mo["A16"] = "Cash on hand at end of month 12 (should equal the corpus if restored):"
-mo["B16"] = "=M12"; mo["B16"].number_format = USD
-mo["A17"] = "Check: % disbursed adds to 100%"
-mo["B17"] = '=IF(ABS(N6-1)<0.0001,"OK","ERROR: adjust row 6")'
-mo["A19"] = ("Note: Fund cash counts principal repaid plus the default budget share of interest. "
-             "Other interest shares go to lenders, TAMISEMI, region and LGA.")
-for a in ("A13", "A15", "A16", "A17", "B15", "B16", "B17", "B13"):
-    mo[a].font = BOLD
-mo.column_dimensions["A"].width = 44
-for m in range(2, 15):
+title(mo, "Monthly cycle (24 months: year 1 lending, year 2 run-off)",
+      "Enter the % of the allocated amount lent as NEW loans each month (yellow, months 1-12). "
+      "Repayments are equal monthly instalments over the loan term.")
+LC = col(MONTHS + 2)                     # total column
+header(mo, 4, ["Line"] + [f"M{m}" for m in range(1, MONTHS + 1)] + ["Total"])
+M = {k: r for r, k in enumerate(
+    ["month", "year", "pct", "new", "relent", "disb", "due", "repaid", "interest",
+     "reserve", "out", "cash", "total", "backflag"], 5)}
+labels = {
+    "month": "Month number", "year": "Year",
+    "pct": "% of allocation lent as NEW loans this month",
+    "new": "New loans from the corpus", "relent": "Re-lent repayments",
+    "disb": "Total loans made this month", "due": "Principal due",
+    "repaid": "Principal repaid (after defaults)", "interest": "Interest collected",
+    "reserve": "Default budget returned to fund",
+    "out": "Loans outstanding (end of month)", "cash": "Fund cash on hand (end of month)",
+    "total": "Cash + loans outstanding", "backflag": "(helper) month if cash is back to corpus",
+}
+for k, r in M.items():
+    mo.cell(row=r, column=1, value=labels[k])
+mo.cell(row=M["backflag"], column=1).font = Font(italic=True, color="8A978C")
+pattern = [0.25, 0.20, 0.15, 0.10, 0.10, 0.10, 0.05, 0.05, 0, 0, 0, 0]
+MR = f"$B${M['month']}"
+for m in range(1, MONTHS + 1):
+    c, p = col(m + 1), col(m)            # this column, previous column
+    mo[f"{c}{M['month']}"] = m
+    mo[f"{c}{M['month']}"].font = BOLD
+    mo[f"{c}{M['year']}"] = 1 if m <= 12 else 2
+    cell = mo[f"{c}{M['pct']}"]
+    if m <= 12:
+        cell.value = pattern[m - 1]
+        inp(cell, PCT)
+    else:
+        cell.value, cell.fill, cell.number_format = 0, GREY, PCT
+    mo[f"{c}{M['new']}"] = f"=IF({c}${M['month']}<={R('lastm')},{c}{M['pct']}*{ALLOC},0)"
+    mo[f"{c}{M['relent']}"] = ("=0" if m == 1 else
+                               f"=IF({c}${M['month']}<={R('lastm')},{p}{M['repaid']}*{R('relend')},0)")
+    mo[f"{c}{M['disb']}"] = f"={c}{M['new']}+{c}{M['relent']}"
+    # principal due in month m from loans made in earlier months d with 1 <= m-d <= term
+    if m == 1:
+        mo[f"{c}{M['due']}"] = "=0"
+    else:
+        mo[f"{c}{M['due']}"] = (f"=SUMIFS($B{M['disb']}:{p}{M['disb']},{MR}:{p}${M['month']},"
+                                f"\">=\"&({c}${M['month']}-{TERM}))/{TERM}")
+    mo[f"{c}{M['repaid']}"] = f"={c}{M['due']}*(1-{DEF})"
+    mo[f"{c}{M['interest']}"] = f"={c}{M['repaid']}*{RATE}/12*{TERM}"
+    mo[f"{c}{M['reserve']}"] = f"={c}{M['interest']}*{R('sdef')}"
+    prev_out = "0" if m == 1 else f"{p}{M['out']}"
+    mo[f"{c}{M['out']}"] = f"={prev_out}+{c}{M['disb']}-{c}{M['due']}"
+    prev_cash = CORPUS if m == 1 else f"{p}{M['cash']}"
+    mo[f"{c}{M['cash']}"] = f"={prev_cash}-{c}{M['disb']}+{c}{M['repaid']}+{c}{M['reserve']}"
+    mo[f"{c}{M['total']}"] = f"={c}{M['cash']}+{c}{M['out']}"
+    mo[f"{c}{M['backflag']}"] = f"=IF({c}{M['cash']}>={CORPUS}-0.5,{c}{M['month']},999)"
+    for k in ("new", "relent", "disb", "due", "repaid", "interest", "reserve", "out", "cash", "total"):
+        mo[f"{c}{M[k]}"].number_format = USD
+    if m == 12:
+        for k in M:
+            mo[f"{c}{M[k]}"].border = Border(right=Side(style="thick", color="1C5A3F"))
+first, lastc = "B", col(MONTHS + 1)
+mo[f"{LC}{M['pct']}"] = f"=SUM(B{M['pct']}:M{M['pct']})"
+mo[f"{LC}{M['pct']}"].number_format = PCT
+for k in ("new", "relent", "disb", "due", "repaid", "interest", "reserve"):
+    mo[f"{LC}{M[k]}"] = f"=SUM({first}{M[k]}:{lastc}{M[k]})"
+    mo[f"{LC}{M[k]}"].number_format, mo[f"{LC}{M[k]}"].font = USD, BOLD
+for k in ("disb", "cash", "out"):
+    mo.cell(row=M[k], column=1).font = BOLD
+
+S = M["backflag"] + 2
+section(mo, S, "YEAR-END SNAPSHOT (end of month 12)", 4)
+snap = [
+    ("Fund cash on hand at month 12", f"=M{M['cash']}", USD),
+    ("Money still out on loan at month 12 (repaid in year 2)", f"=M{M['out']}", USD),
+    ("Cash + loans still out", f"=M{M['total']}", USD),
+    ("Share of corpus back as cash at month 12", f"=M{M['cash']}/{CORPUS}", PCT),
+    ("Total loans made in year 1 (incl. re-lending)", f"=SUM(B{M['disb']}:M{M['disb']})", USD),
+    ("Times the corpus was lent in year 1 (turnover)", f"=SUM(B{M['disb']}:M{M['disb']})/{CORPUS}", "0.00"),
+    ("First month the corpus is fully back as cash",
+     f'=IF(MIN(B{M["backflag"]}:{lastc}{M["backflag"]})=999,"Not within 24 months (defaults not covered)",'
+     f'MIN(B{M["backflag"]}:{lastc}{M["backflag"]}))', "0"),
+    ("Fund cash at month 24 (all loans closed)", f"={lastc}{M['cash']}", USD),
+    ("Check: new-loan % adds to 100%", f'=IF(ABS({LC}{M["pct"]}-1)<0.0001,"OK","ERROR: adjust row {M["pct"]}")', "@"),
+    ("Check: no new loans after the last lending month",
+     f'=IF(SUMPRODUCT((B{M["month"]}:M{M["month"]}>{R("lastm")})*B{M["pct"]}:M{M["pct"]})>0,'
+     f'"WARNING: some % is after the last lending month and is ignored","OK")', "@"),
+]
+SN = {}
+for i, (lab, f, fmt) in enumerate(snap, S + 1):
+    mo[f"A{i}"], mo[f"B{i}"] = lab, f
+    mo[f"B{i}"].number_format, mo[f"B{i}"].font = fmt, BOLD
+    SN[lab] = i
+mo[f"A{i + 2}"] = ("Note: fund cash counts principal repaid plus the default-budget share of interest. "
+                   "Other interest shares go to TAMISEMI, region, LGA and the lender. The thick line marks year end.")
+mo.column_dimensions["A"].width = 52
+for m in range(2, MONTHS + 3):
     mo.column_dimensions[col(m)].width = 13
 mo.freeze_panes = "B5"
+
+
+def MO(k):
+    return f"'Monthly cycle'!${LC}${M[k]}"
+
+
+# ---------------------------------------------------------------- Fund flow
+ff = wb.create_sheet("Fund flow", index=3)
+title(ff, "Fund flow: all loans made in year 1, until they close",
+      "TAMISEMI -> Lenders -> CMGs -> back. All formulas; totals come from 'Monthly cycle'.")
+header(ff, 4, ["Step", "Amount (USD)", "From -> To", "How it is worked out"])
+F = table(ff, 5, [
+    (None, "1. MONEY OUT", None, None, None, None),
+    ("fund", "Total PAMOJA fund", f"={R('fund')}", USD, "TAMISEMI", ""),
+    ("linc", "Lender incentives set aside", f"={R('linc')}", USD, "TAMISEMI -> Lenders", "Paid later, not lent"),
+    ("cinc", "CMG incentives set aside", f"={R('cinc')}", USD, "TAMISEMI -> CMGs", "Paid later, not lent"),
+    ("adv", "Advances to lenders (new loans from corpus)", f"={MO('new')}", USD, "TAMISEMI -> Lenders",
+     "Sum over the months"),
+    ("unused", "Corpus not lent (returned)", lambda a: f"={CORPUS}-B{a['adv']}", USD, "Lenders -> TAMISEMI",
+     "Unused advance"),
+    ("relent", "Repayments lent out again", f"={MO('relent')}", USD, "Lenders -> CMGs", "Re-lending"),
+    ("loans", "Total loans to CMGs", lambda a: f"=B{a['adv']}+B{a['relent']}", USD, "Lenders -> CMGs", ""),
+    (None, "2. MONEY BACK FROM CMGs", None, None, None, None),
+    ("dft", "Principal defaulted", lambda a: f"=B{a['loans']}*{DEF}", USD, "", "Loans x default rate"),
+    ("rep", "Principal repaid", f"={MO('repaid')}", USD, "CMGs -> Lenders", "Loans - defaults"),
+    ("int", "Interest collected", f"={MO('interest')}", USD, "CMGs -> Lenders", "Flat: repaid x rate x term/12"),
+    ("tot", "Total repayments", lambda a: f"=B{a['rep']}+B{a['int']}", USD, "CMGs -> Lenders", ""),
+    (None, "3. SPLIT OF INTEREST", None, None, None, None),
+    ("sdef", "Default budget (loss reserve)", lambda a: f"=B{a['int']}*{R('sdef')}", USD, "Lenders -> TAMISEMI", ""),
+    ("stam", "TAMISEMI share", lambda a: f"=B{a['int']}*{R('stam')}", USD, "Lenders -> TAMISEMI", ""),
+    ("sreg", "Region share", lambda a: f"=B{a['int']}*{R('sreg')}", USD, "-> Region", ""),
+    ("slga", "LGA share", lambda a: f"=B{a['int']}*{R('slga')}", USD, "-> LGA", ""),
+    ("slen", "Lender margin", lambda a: f"=B{a['int']}*{R('slen')}", USD, "Kept by lenders", "Remainder"),
+    (None, "4. CORPUS CHECK (after all loans close)", None, None, None, None),
+    ("start", "Corpus at start", f"={CORPUS}", USD, "", ""),
+    ("lost", "Less principal defaulted", lambda a: f"=-B{a['dft']}", USD, "", ""),
+    ("add", "Plus default budget added back", lambda a: f"=B{a['sdef']}", USD, "", "Covers the defaulted principal"),
+    ("end", "Corpus at end", lambda a: f"=B{a['start']}+B{a['lost']}+B{a['add']}", USD, "", ""),
+    ("gap", "Gap (end - start)", lambda a: f"=B{a['end']}-B{a['start']}", USD, "", "Negative = corpus NOT restored"),
+    ("res", "Result", lambda a: f'=IF(B{a["gap"]}>=-0.5,"Corpus restored",'
+                                '"Corpus NOT restored - raise interest share for defaults or rate")', "@", "", ""),
+    ("need", "Default budget needed (% of interest)", lambda a: f"=IF(B{a['int']}=0,0,B{a['dft']}/B{a['int']})",
+     PCT, "", "Minimum share of interest to cover defaults"),
+    ("be", "Break-even default rate",
+     f"={R('sdef')}*{RATE}*{TERM}/12/(1+{R('sdef')}*{RATE}*{TERM}/12)", PCT, "",
+     "Highest default rate the current split can cover"),
+    ("tie", "Check: matches month-24 cash on 'Monthly cycle'",
+     lambda a: f"=IF(ABS(B{a['end']}-'Monthly cycle'!{lastc}{M['cash']})<1,\"OK\",\"ERROR\")", "@", "", ""),
+    (None, "5. YEAR-END TIMING (from 'Monthly cycle')", None, None, None, None),
+    ("ye_cash", "Cash back in the fund at month 12", f"='Monthly cycle'!B{SN['Fund cash on hand at month 12']}",
+     USD, "", ""),
+    ("ye_out", "Still out on loan at month 12",
+     f"='Monthly cycle'!B{SN['Money still out on loan at month 12 (repaid in year 2)']}", USD, "",
+     "Comes back in year 2"),
+    ("ye_back", "First month corpus fully back as cash",
+     f"='Monthly cycle'!B{SN['First month the corpus is fully back as cash']}", "0", "", ""),
+])
+for k in ("end", "res", "loans"):
+    ff[f"A{F[k]}"].font = ff[f"B{F[k]}"].font = BOLD
+for Lc, w in zip("ABCD", (44, 18, 24, 48)):
+    ff.column_dimensions[Lc].width = w
+
+# ---------------------------------------------------------------- Open questions sheet
+oq = wb.create_sheet("Open questions")
+title(oq, "Open questions", "To settle before the model uses real figures.")
+header(oq, 4, ["#", "Question", "Why it matters", "Added in", "Answer"])
+for r, (n, q, why, v) in enumerate(QUESTIONS, 5):
+    for c, val in enumerate((n, q, why, v, ""), 1):
+        cell = oq.cell(row=r, column=c, value=val)
+        cell.alignment = Alignment(wrap_text=True, vertical="top")
+    oq.cell(row=r, column=5).fill = INPUT
+for Lc, w in zip("ABCDE", (4, 60, 55, 9, 40)):
+    oq.column_dimensions[Lc].width = w
 
 # ---------------------------------------------------------------- Glossary
 gl = wb.create_sheet("Glossary")
@@ -283,17 +425,21 @@ terms = [
     ("Default", "A loan, or part of a loan, that is not repaid."),
     ("Default budget / loss reserve", "The share of interest set aside to cover defaults."),
     ("Demand", "Number of CMGs x loan per CMG, before any scaling down."),
-    ("Discount", "A share of interest given back or kept to reward a party (e.g. lender discount)."),
     ("Flat interest", "Interest worked out on the full loan amount for the whole term, not on the falling balance."),
     ("Incentive", "A payment to reward good results (lenders: lending well; CMGs: on-time repayment)."),
+    ("Instalment", "One of the equal monthly repayments of a loan."),
+    ("Lender margin", "The share of interest the lender keeps after all other shares are paid."),
     ("LGA", "Local Government Authority: the district or council."),
     ("Loan:Savings ratio", "Loan amount divided by the CMG's savings. Capped by the maximum ratio input."),
     ("Portfolio default rate", "Defaulted principal as a % of all loans made."),
     ("Principal", "The amount lent, not counting interest."),
-    ("Revolving fund", "A fund where repayments are lent out again. Not yet in v0.1."),
+    ("Re-lending / revolving fund", "Lending repayments out again instead of holding them as cash."),
+    ("Run-off", "The period after lending stops, while loans already made are being repaid."),
     ("Scale factor", "The % of demand that can be met when demand is more than the corpus."),
     ("Share-out", "When the CMG shares its savings and profits among members at the end of the cycle."),
     ("TAMISEMI", "President's Office - Regional Administration and Local Government (Tanzania). Funds PAMOJA."),
+    ("Tenure / term", "How long a loan runs, in months, from disbursement to the last instalment."),
+    ("Turnover", "Total loans made in a year divided by the corpus: how many times the money was lent."),
     ("TZS / USD", "Tanzanian shilling / United States dollar."),
 ]
 for r, (a, b) in enumerate(terms, 5):
@@ -304,3 +450,11 @@ gl.column_dimensions["B"].width = 100
 
 wb.save(OUT)
 print("saved", OUT)
+
+# Keep a plain-text copy of the open questions next to the model
+with open("model/OPEN_QUESTIONS.md", "w") as fh:
+    fh.write("# Open questions (PAMOJA financial model)\n\n"
+             "Generated by `build_model.py`; also on the 'Open questions' sheet.\n\n"
+             "| # | Question | Why it matters | Added in |\n|---|---|---|---|\n")
+    for n, q, why, v in QUESTIONS:
+        fh.write(f"| {n} | {q} | {why} | {v} |\n")
