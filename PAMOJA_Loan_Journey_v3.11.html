@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PAMOJA Loan Journey v3.11</title>
-<meta name="description" content="Interactive flowchart of the PAMOJA CMG loan journey, version 3.11: group registration, lender set-up, council pools, lending, repayment, reporting and results-based payments.">
+<meta name="description" content="Interactive flowchart of the PAMOJA CMG loan journey, version 3.11: group registration, lender set-up, lender assignment, lending, repayment, reporting and results-based payments.">
 <style>
   :root{
     --ground:#eef1ea; --card:#ffffff; --card-2:#f5f7f1;
@@ -217,6 +217,36 @@
   .legend .lg-out{display:inline-block;width:26px;height:14px;border:1.5px dashed var(--line-strong);border-radius:4px;background:var(--card-2)}
   .legend .lg-gate{font-size:10px;font-weight:800;color:#fff;background:var(--inside);border-radius:4px;padding:1px 5px;margin-right:-3px}
   .legend .lg-gate.out{background:var(--ink);color:var(--ground);margin-right:0}
+  /* ── actor journey maps ── */
+  .am-tabs{margin:0 0 12px}
+  .am-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px}
+  .am-ring{position:relative;height:640px}
+  .am-ring svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+  .am-ring ellipse{fill:none;stroke:var(--c);stroke-width:2.5;stroke-dasharray:3 7;stroke-linecap:round;opacity:.55}
+  .am-ring .ah{fill:var(--c)}
+  .am-step{position:absolute;transform:translate(-50%,-50%);width:172px;z-index:2;font:inherit;text-align:left;color:var(--ink);background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:10px;padding:7px 9px 8px;box-shadow:var(--shadow);cursor:pointer}
+  .am-step:hover{box-shadow:var(--shadow-lg);border-color:var(--c)}
+  .am-step .n{display:block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+  .am-step .t{display:block;font-size:13px;font-weight:700;line-height:1.25}
+  .am-aff{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:var(--faint);font-weight:600}
+  .am-aff .a{display:inline-flex;align-items:center;gap:4px;font-weight:700;border-radius:999px;padding:1px 7px;background:var(--cbg);color:var(--c)}
+  .am-aff .a i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+  .am-mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:230px;text-align:center}
+  .am-mid b{display:block;font-family:var(--serif);font-size:26px;line-height:1.1;color:var(--c)}
+  .am-mid span{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+  .am-back{display:none}
+  .am-ring.list{height:auto;display:flex;flex-direction:column;gap:8px}
+  .am-ring.list svg{display:none}
+  .am-ring.list .am-step{position:static;transform:none;width:100%}
+  .am-ring.list .am-mid{position:static;transform:none;width:auto;text-align:left;margin-bottom:4px}
+  .am-ring.list .am-back{display:block;font-size:13px;font-weight:700;color:var(--c)}
+  .am-in{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .am-in h3{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+  .am-in .list{display:flex;flex-wrap:wrap;gap:6px}
+  .am-in button{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:8px;padding:4px 9px;cursor:pointer}
+  .am-in button span{color:var(--c);font-weight:800;margin-right:4px}
+  .sheet .am-aff{font-size:12.5px}
+  .sheet .am-aff .a{font-size:12.5px;padding:2px 9px}
   /* ── system map ── */
   .sysmap-wrap{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px;margin:0 0 18px}
   .sm-title{display:flex;flex-wrap:wrap;gap:2px 12px;align-items:baseline;margin:0 0 10px}
@@ -308,7 +338,7 @@
 <main>
   <div class="eyebrow">PAMOJA · CMG loan journey · Version 3.11 (draft for review)</div>
   <h1>The PAMOJA loan journey, from a new group to results-based payments</h1>
-  <p class="lede">Four parties share one loan record. Each box is a step someone takes. Follow the arrows down, or press <b>Walk me through it</b> to go step by step. Click any box for the detail. Steps marked <span class="qtag">? open</span> have questions still to settle. The green frame marks the PAMOJA loan journey itself (“inside”); faded, dashed steps are outside it.</p>
+  <p class="lede">Four parties share one loan record. Each box is a step someone takes. Follow the arrows down, or press <b>Walk me through it</b> to go step by step. Click any box for the detail. The <b>actor journey maps</b> show each party’s own loop of steps. Steps marked <span class="qtag">? open</span> have questions still to settle. The green frame marks the PAMOJA loan journey itself (“inside”); faded, dashed steps are outside it.</p>
   <section class="sysmap-wrap" aria-label="System map">
     <div class="sm-title"><b>The system on one page</b><span>Who does what, in time order, and where the PAMOJA loan journey starts and ends. Click any step for detail.</span></div>
     <div class="sm-scroll"><div class="sysmap" id="sysmap"></div></div>
@@ -325,7 +355,7 @@
     </div>
     <label class="switch"><input type="checkbox" id="exc" checked> Show rejections &amp; refusals</label>
     <label class="switch"><input type="checkbox" id="outside" checked> Show outside steps</label>
-    <nav class="jump" aria-label="Sections"><a href="#money">Money map</a><a href="#rules">Key rules</a><a href="#questions">Open questions</a><a href="#glossary">Glossary</a></nav>
+    <nav class="jump" aria-label="Sections"><a href="#actors">Actor journeys</a><a href="#money">Money map</a><a href="#rules">Key rules</a><a href="#questions">Open questions</a><a href="#glossary">Glossary</a></nav>
   </div>
 
   <div class="legend" aria-hidden="true">
@@ -339,6 +369,17 @@
   </div>
 
   <div class="chart" id="chart"></div>
+
+  <!-- ── Actor journey maps ── -->
+  <section class="sec" id="actors">
+    <h2 class="sec-h">Actor journey maps</h2>
+    <p class="sec-p">Pick a party to see the loop of steps it is responsible for (its own lane), in order. The chips on each step show who else that step affects. The loop starts again each cycle. Click any step for the detail.</p>
+    <div class="chips am-tabs" role="group" aria-label="Choose a party" id="am-tabs"></div>
+    <div class="am-card">
+      <div class="am-ring" id="am-ring"></div>
+      <div class="am-in" id="am-in"></div>
+    </div>
+  </section>
 
   <!-- ── Money map ── -->
   <section class="sec" id="money">
@@ -376,7 +417,7 @@
       <g class="bd"><circle cx="588" cy="411" r="12"/><text x="588" y="415">3</text></g><text class="lb" x="572" y="415" text-anchor="end">Repayments</text>
       <g class="bd"><circle cx="260" cy="155" r="12"/><text x="260" y="159">5</text></g><text class="lb" x="244" y="159" text-anchor="end">Service fee</text>
       <g class="bd op"><circle cx="450" cy="200" r="12"/><text x="450" y="204">6</text></g><text class="lb" x="432" y="204" text-anchor="end">CMG incentives (route?)</text>
-      <g class="bd in"><circle cx="540" cy="290" r="12"/><text x="540" y="294">7</text></g><text class="lb" x="540" y="320" text-anchor="middle">Pool allocation</text>
+      <g class="bd in"><circle cx="540" cy="290" r="12"/><text x="540" y="294">7</text></g><text class="lb" x="540" y="320" text-anchor="middle">Lender assignment</text>
       <g class="bd in"><circle cx="360" cy="263" r="12"/><text x="360" y="267">8</text></g><text class="lb" x="360" y="247" text-anchor="middle">Loan status, reports</text>
       <g class="bd in"><circle cx="845" cy="175" r="12"/><text x="845" y="179">8</text></g>
     </svg>
@@ -389,10 +430,10 @@
         <tr><td><b>2</b></td><td>Loan</td><td>Lender → CMG bank account</td><td>At or below TAMISEMI’s interest ceiling. Schedule ends before the CMG’s cycle end date.</td></tr>
         <tr><td><b>3</b></td><td>Repayments</td><td>CMG → Lender’s single PAMOJA account</td><td>With a control number. Instalments or one bullet payment. Early repayment allowed. Fully repaid before the share-out.</td></tr>
         <tr><td><b>4</b></td><td>Discounts, incentives and risk share</td><td>TAMISEMI → Lender</td><td>Discounts and incentives quarterly. Risk share on defaulted loans, by the agreed formula (trigger and timing open, Q12).</td></tr>
-        <tr><td><b>5</b></td><td>Service fee</td><td>TAMISEMI → LGA</td><td>Agreed formula: pool, then successful loans, then successful repayments.</td></tr>
+        <tr><td><b>5</b></td><td>Service fee</td><td>TAMISEMI → LGA</td><td>Agreed formula: eligible CMGs assigned lenders, then successful loans, then successful repayments.</td></tr>
         <tr><td><b>6</b></td><td>CMG incentives</td><td>TAMISEMI → CMG</td><td>Rewards on-time and early full repayment. <span class="qtag">? open</span> Route not agreed: through the lender, or direct from TAMISEMI (Q14).</td></tr>
         <tr><td><b>10</b></td><td>Unused advance</td><td>Lender → TAMISEMI</td><td>Advance funds that are not lent are returned.</td></tr>
-        <tr class="inrow"><td><b>7</b></td><td>Pool allocation (information)</td><td>LGA → Lender</td><td>Which eligible CMGs each lender may lend to.</td></tr>
+        <tr class="inrow"><td><b>7</b></td><td>Lender assignment (information)</td><td>LGA → Lender</td><td>Which eligible CMGs each lender is assigned to (1 to 2 lenders per CMG).</td></tr>
         <tr class="inrow"><td><b>8</b></td><td>Loan status and reports (information)</td><td>Lender → LGA and TAMISEMI</td><td>Live status of every loan, plus weekly, monthly and quarterly totals by region, LGA and ward.</td></tr>
       </tbody>
     </table>
@@ -406,12 +447,12 @@
       <div><b>Group size</b><span>10 to 50 members, with an adopted constitution.</span></div>
       <div><b>Track record</b><span>Savings or profits for at least one earlier cycle.</span></div>
       <div><b>Lenders per council</b><span>2 to 3, assigned by TAMISEMI.</span></div>
-      <div><b>Lender per group</b><span>One, allocated by the LGA. Groups apply only to that lender.</span></div>
+      <div><b>Lenders per group</b><span>1 to 2 TAMISEMI designated lenders, assigned by the LGA. Groups apply only to their assigned lenders.</span></div>
       <div><b>Appraisal</b><span>Uses the criteria the lender gave TAMISEMI at selection.</span></div>
       <div><b>Interest</b><span>At or below TAMISEMI’s ceiling.</span></div>
       <div><b>Amount</b><span>The lender may approve less than requested.</span></div>
       <div><b>Rejections</b><span>Every rejection needs a clear reason.</span></div>
-      <div><b>Eligibility</b><span>TAMISEMI sets national minimum criteria. Each LGA may add its own.</span></div>
+      <div><b>Eligibility</b><span>TAMISEMI sets national minimum criteria. Each LGA may add its own. The criteria (such as age and savings) are still to be agreed (Q16).</span></div>
       <div><b>Choice</b><span>The group may accept or refuse each loan. Accepting needs a meeting with a quorum.</span></div>
       <div><b>Disbursement</b><span>Within 15 working days of the advance reaching the lender.</span></div>
       <div><b>Repayment deadline</b><span>Before the cycle ends and before the group’s share-out.</span></div>
@@ -438,18 +479,20 @@
     <h2 class="sec-h">Glossary</h2>
     <dl class="gloss">
       <dt>Advance</dt><dd>Money TAMISEMI sends a lender ahead of lending, based on demand estimates.</dd>
+      <dt>Actor journey map</dt><dd>A loop of the steps one party is responsible for, in order, showing who else each step affects.</dd>
       <dt>Amortisation schedule</dt><dd>The repayment schedule: how much is due and when, until the loan is repaid. Called “repayment schedule” in this chart.</dd>
       <dt>Annual cycle</dt><dd>The group’s savings year, with fixed start and end dates. Profits are shared out at the end.</dd>
       <dt>Appraisal</dt><dd>The lender’s check of an application before deciding whether to lend, and how much.</dd>
       <dt>Bullet payment</dt><dd>Repaying the whole loan in one payment, instead of instalments.</dd>
       <dt>Closed (fully repaid)</dt><dd>A loan status: the lender has confirmed the loan is fully repaid.</dd>
       <dt>CMG</dt><dd>Community Microfinance Group: a savings group whose members save and lend to each other.</dd>
-      <dt>Cohort</dt><dd>A batch of CMGs the LGA has found eligible for PAMOJA loans.</dd>
       <dt>Constitution</dt><dd>The group’s written rules for how it runs.</dd>
       <dt>Control number</dt><dd>A reference number the lender issues so each repayment can be matched to the right loan.</dd>
       <dt>Days past due</dt><dd>How many days a payment is late.</dd>
       <dt>Defaulted</dt><dd>A loan status: the loan was not repaid as agreed. The exact trigger is still open (Q12).</dd>
+      <dt>Demand estimate</dt><dd>An estimate of how much eligible CMGs are likely to borrow. TAMISEMI uses it to size each lender’s advance.</dd>
       <dt>Discount rate</dt><dd>The rate at which PAMOJA funds are lent to the lender, agreed in the lending agreement.</dd>
+      <dt>Eligible CMG</dt><dd>A registered CMG that meets the eligibility criteria, so the LGA can assign it lenders. The criteria are still to be agreed (Q16).</dd>
       <dt>FI</dt><dd>Financial Institution. Called “Lender” throughout this chart.</dd>
       <dt>Gateway (IN / OUT)</dt><dd>The points where a group enters the PAMOJA loan journey (when it applies to its lender) and leaves it (when its loan closes, its cycle ends with no loan, or a defaulted loan is fully settled).</dd>
       <dt>Inside (the loan journey)</dt><dd>Working term for the steps that make up the PAMOJA loan itself, from application to leaving. Shown inside the green frame.</dd>
@@ -459,12 +502,11 @@
       <dt>LGA</dt><dd>Local Government Authority: the district or town council.</dd>
       <dt>Outside</dt><dd>Working term for steps that are not part of the loan journey itself: pre-loan and post-loan.</dd>
       <dt>PAMOJA</dt><dd>The World Bank-supported project (P178813) that funds these loans.</dd>
-      <dt>Pool</dt><dd>The eligible CMGs in a council, shared out among its assigned lenders.</dd>
       <dt>Post-loan</dt><dd>Outside steps after the loan journey: TAMISEMI’s quarterly payments to lenders, default settlements, LGA service fees and CMG incentives.</dd>
-      <dt>Pre-loan</dt><dd>Outside steps before the loan journey: the group forms, sets itself up and registers; TAMISEMI selects lenders and signs agreements; councils form cohorts and allocate pools; invitations and advances go out.</dd>
+      <dt>Pre-loan</dt><dd>Outside steps before the loan journey: the group forms, sets itself up and registers; TAMISEMI selects lenders and signs agreements; councils assign 1 to 2 lenders to each eligible CMG; invitations and advances go out.</dd>
       <dt>Quorum</dt><dd>The minimum number of members who must attend for a meeting to take decisions.</dd>
       <dt>Risk sharing</dt><dd>An agreed formula for how TAMISEMI and the lender share losses on loans that default.</dd>
-      <dt>Service fee</dt><dd>A payment from TAMISEMI to an LGA for its role, linked to pools, loans and repayments.</dd>
+      <dt>Service fee</dt><dd>A payment from TAMISEMI to an LGA for its role, linked to eligible CMGs assigned lenders, loans and repayments.</dd>
       <dt>Share-out</dt><dd>When the group divides its savings and profits among members at the end of the cycle.</dd>
       <dt>TAMISEMI</dt><dd>The President’s Office – Regional Administration and Local Government (also known as PO-RALG), which runs PAMOJA nationally.</dd>
       <dt>Written off</dt><dd>A loan status: a defaulted loan the lender removes from its active books.</dd>
@@ -472,7 +514,7 @@
     </dl>
   </section>
 
-  <p class="foot"><b>Version 3.11 (draft for review), 27 September 2026.</b> In the system map, the first zone heading now reads “Pre-loan”, with the sub-heading “Setting up”, and the last reads “Post-loan”, with the sub-heading “Settlement”. Step 11 “Form eligible cohorts” removed; the group’s record now leads straight to the pool allocation, which becomes step 11. Settled question Q4 now links to that step, and the invitation step now refers to step 11. Later steps are renumbered, so there are 26 steps. Step 11 is now “Assign 1–2 TAMISEMI designated lenders to all eligible registered CMGs, who can then apply for loans”, with a new open question (Q16) on the eligibility criteria still to be agreed. Step 12 “Invite applications” is now triggered by the lender assignment in step 11, not a pool allocation. Step 13 “Release advances to lenders” now says funds are advanced to each lender based on demand estimates; the money map, Q6 and the glossary say the same.<br><b>Version 3.10, 27 September 2026.</b> Step 21 “Reach out on delays” (LGA outreach at 15 days past due) removed, with its arrows, the outreach flow (9) on the money map, the outreach part of the Recovery rule, and settled question Q11. Steps 22 to 28 are now 21 to 27.<br><b>Version 3.9, 27 September 2026.</b> Outside zones renamed: “Programme set-up” is now “Pre-loan”, and “Programme settlement” is now “Post-loan”, in the map, flowchart, legend and glossary. Content unchanged.<br><b>Version 3.8, 27 September 2026.</b> Outside zones made more muted in the system map and the flowchart: neutral grey backgrounds, softer stakeholder colours, lighter text. Content unchanged.<br><b>Version 3.7, 27 September 2026.</b> New step 26 “Settle defaults with lenders”: TAMISEMI pays its risk share on defaulted loans. The LGA service fee and CMG incentives are now steps 27 and 28. No other changes.<br><b>Version 3.6, 27 September 2026.</b> Steps 13 and 14 swapped: “Invite applications” is now step 13 and “Release advances to lenders” is step 14. Stage 5 renamed to match. No other changes.<br><b>Version 3.5, 27 September 2026.</b> Step 14 “Invite applications” is now shown as triggered by the pool allocation (step 12), with TAMISEMI notified when invitations go out. No other changes.<br><b>Version 3.4, 27 September 2026.</b> Step 12 renamed “Allocate the CMG cohort pool across lenders designated to the council by TAMISEMI”, in both the system map and the flowchart. No other changes.<br><b>Version 3.3, 27 September 2026.</b> Step 12 renamed “Allocate the cohort pool among lenders”, making clear the pool is shared among the lenders TAMISEMI designated to the council. No other changes.<br><b>Version 3.2, 27 September 2026.</b> “Set the annual cycle” and “Agree the group’s rules” moved up to become steps 2 and 3, so the group sets itself up before submitting documents. Old steps 2, 3 and 5 are now 4, 5 and 6; stages 1 and 2 renamed to match. All other steps unchanged.<br><b>Version 3.1, 27 September 2026.</b> The two early outside zones are merged into one, “Programme set-up”. The one-page system map now runs in time order: steps go down each column in number order, and a new column starts whenever the next step sits in a row above, so the numbers never jump back. Step content and numbering are unchanged from 3.0.<br><b>Version 3.0, 27 September 2026.</b> Adds “inside / outside” boundaries (answers B1–B6): the loan journey runs from the group’s application (▶ IN, step 15) to leaving (◀ OUT, step 24); everything else is outside. Adds the one-page system map, stronger stakeholder colours, and a switch to hide outside steps. Steps reordered: shared status and reports now come before leaving, so steps 22–24 are renumbered; the lender’s invitation moved into stage 5.<br><b>Version 2.2, 27 September 2026.</b> Layout only: the detail panel now opens on the right on laptop and tablet screens, with the flowchart on the left. Content is unchanged from 2.1.<br><b>Version 2.1, 27 September 2026.</b> Changes from 2.0: answers to Q1, Q3, Q4, Q7, Q10, Q11, Q13 and Q15 applied; options added to the seven questions still open; three final loan statuses added; unused-advance return added to the money map.<br><b>Version 2.0, 27 September 2026.</b> A new flow built from the updated PAMOJA journey notes. It replaces the earlier CMG Loan Tracker beta flow (version 1), which is kept separately. Main changes from version 1: group size is now 10 to 50; registration goes through WEZESHA; TAMISEMI assigns 2 to 3 lenders per council; LGAs build eligible pools; advances, discounts, incentives and fees are added; repayment is by control number into one account per lender. “Lender” is used throughout for the bank or microfinance institution (FI).<br>Reference: <a href="https://projects.worldbank.org/en/projects-operations/project-detail/P178813" target="_blank" rel="noopener">World Bank project page, P178813</a>.</p>
+  <p class="foot"><b>Version 3.11 (draft for review), 27 September 2026.</b> Changes from 3.10, from review comments: (1) new actor journey maps: one loop for each party (TAMISEMI, LGA, Lender, CMG) showing the steps it is responsible for and who else each step affects; the detail panel also shows this. (2) Step 11 “Form eligible cohorts” removed. Step 11 is now “Assign 1–2 TAMISEMI designated lenders to all eligible registered CMGs, who can then apply for loans”, with a new open question (Q16) on the eligibility criteria, such as age and savings. (3) Cohorts and pools are gone throughout: step 12 invitations are triggered by the lender assignment; step 13 advances are based on demand estimates; a CMG can apply to either of its 1 to 2 assigned lenders; the LGA service fee follows eligible CMGs assigned lenders; stage 4, the key rules, the money map, open questions and glossary are updated to match. (4) Zone headings are now “Pre-loan · Setting up” and “Post-loan · Settlement”. There are now 26 steps.<br><b>Version 3.10, 27 September 2026.</b> Step 21 “Reach out on delays” (LGA outreach at 15 days past due) removed, with its arrows, the outreach flow (9) on the money map, the outreach part of the Recovery rule, and settled question Q11. Steps 22 to 28 are now 21 to 27.<br><b>Version 3.9, 27 September 2026.</b> Outside zones renamed: “Programme set-up” is now “Pre-loan”, and “Programme settlement” is now “Post-loan”, in the map, flowchart, legend and glossary. Content unchanged.<br><b>Version 3.8, 27 September 2026.</b> Outside zones made more muted in the system map and the flowchart: neutral grey backgrounds, softer stakeholder colours, lighter text. Content unchanged.<br><b>Version 3.7, 27 September 2026.</b> New step 26 “Settle defaults with lenders”: TAMISEMI pays its risk share on defaulted loans. The LGA service fee and CMG incentives are now steps 27 and 28. No other changes.<br><b>Version 3.6, 27 September 2026.</b> Steps 13 and 14 swapped: “Invite applications” is now step 13 and “Release advances to lenders” is step 14. Stage 5 renamed to match. No other changes.<br><b>Version 3.5, 27 September 2026.</b> Step 14 “Invite applications” is now shown as triggered by the pool allocation (step 12), with TAMISEMI notified when invitations go out. No other changes.<br><b>Version 3.4, 27 September 2026.</b> Step 12 renamed “Allocate the CMG cohort pool across lenders designated to the council by TAMISEMI”, in both the system map and the flowchart. No other changes.<br><b>Version 3.3, 27 September 2026.</b> Step 12 renamed “Allocate the cohort pool among lenders”, making clear the pool is shared among the lenders TAMISEMI designated to the council. No other changes.<br><b>Version 3.2, 27 September 2026.</b> “Set the annual cycle” and “Agree the group’s rules” moved up to become steps 2 and 3, so the group sets itself up before submitting documents. Old steps 2, 3 and 5 are now 4, 5 and 6; stages 1 and 2 renamed to match. All other steps unchanged.<br><b>Version 3.1, 27 September 2026.</b> The two early outside zones are merged into one, “Programme set-up”. The one-page system map now runs in time order: steps go down each column in number order, and a new column starts whenever the next step sits in a row above, so the numbers never jump back. Step content and numbering are unchanged from 3.0.<br><b>Version 3.0, 27 September 2026.</b> Adds “inside / outside” boundaries (answers B1–B6): the loan journey runs from the group’s application (▶ IN, step 15) to leaving (◀ OUT, step 24); everything else is outside. Adds the one-page system map, stronger stakeholder colours, and a switch to hide outside steps. Steps reordered: shared status and reports now come before leaving, so steps 22–24 are renumbered; the lender’s invitation moved into stage 5.<br><b>Version 2.2, 27 September 2026.</b> Layout only: the detail panel now opens on the right on laptop and tablet screens, with the flowchart on the left. Content is unchanged from 2.1.<br><b>Version 2.1, 27 September 2026.</b> Changes from 2.0: answers to Q1, Q3, Q4, Q7, Q10, Q11, Q13 and Q15 applied; options added to the seven questions still open; three final loan statuses added; unused-advance return added to the money map.<br><b>Version 2.0, 27 September 2026.</b> A new flow built from the updated PAMOJA journey notes. It replaces the earlier CMG Loan Tracker beta flow (version 1), which is kept separately. Main changes from version 1: group size is now 10 to 50; registration goes through WEZESHA; TAMISEMI assigns 2 to 3 lenders per council; LGAs build eligible pools; advances, discounts, incentives and fees are added; repayment is by control number into one account per lender. “Lender” is used throughout for the bank or microfinance institution (FI).<br>Reference: <a href="https://projects.worldbank.org/en/projects-operations/project-detail/P178813" target="_blank" rel="noopener">World Bank project page, P178813</a>.</p>
 </main>
 
 <aside class="sheet" id="sheet" role="dialog" aria-labelledby="sh-title" aria-modal="false">
@@ -504,7 +546,7 @@
     Q1:{s:'L1',t:'If a group’s documents are incomplete or wrong, what happens?',r:'Sorted out on paper with the group, outside the system. No return loop in the system.'},
     Q2:{s:'L1',t:'Will WEZESHA share group data with the loan system, or will details be entered again?'},
     Q3:{s:'C8',t:'Must the decision to accept a PAMOJA loan be taken at a meeting with a quorum?',r:'Yes. A loan can only be accepted at a meeting with a quorum.'},
-    Q4:{s:'L3',t:'What makes a CMG eligible for a cohort? Who sets the criteria?',r:'TAMISEMI sets national minimum criteria. Each LGA may add its own.'},
+    Q4:{s:'L3',t:'Who sets the criteria that make a CMG eligible to be assigned lenders?',r:'TAMISEMI sets national minimum criteria. Each LGA may add its own.'},
     Q5:{s:'T4',t:'What happens if a lender does not disburse within 15 working days of receiving the advance?',o:['Unused funds are returned to TAMISEMI.','A penalty, such as a lost discount or incentive.','The funds move to another lender in the same LGA.','Other (please specify).']},
     Q6:{s:'T4',t:'When does TAMISEMI release the advance to a lender?',o:['Before applications, based on demand estimates (shown in this chart as a working assumption).','After loans are approved, based on the approvals.','Part upfront, the rest after approvals.','Other (please specify).']},
     Q7:{s:'T4',t:'What happens to advance funds that are not lent?',r:'They are returned to TAMISEMI (flow 10 on the money map).'},
@@ -547,8 +589,8 @@
     T2:{lane:'tam',title:'Sign lending agreements',sum:'Funds, discount rate, interest ceiling, risk sharing and incentives.',
       d:{what:'TAMISEMI signs an agreement with each lender.',
          rules:['PAMOJA funds are lent to the lender at an agreed discount rate.','The agreement sets the ceiling on the interest rate the lender may charge CMGs.','It sets the risk-sharing formula for loans that default.','It sets the criteria for lender incentives.']}},
-    T3:{lane:'tam',title:'Assign lenders to each council',sum:'2 to 3 lenders per LGA, from the wider pool.',
-      d:{what:'From its wider pool of authorised lenders, TAMISEMI assigns 2 to 3 lenders to each LGA.'}},
+    T3:{lane:'tam',title:'Assign lenders to each council',sum:'2 to 3 lenders per LGA, from all authorised lenders.',
+      d:{what:'From all its authorised lenders, TAMISEMI designates 2 to 3 lenders for each LGA.'}},
     L3:{lane:'lga',title:'Assign 1–2 TAMISEMI designated lenders to all eligible registered CMGs, who can then apply for loans',sum:'Only lenders TAMISEMI designated to the council. Eligibility criteria still to be agreed.',
       d:{what:'The LGA assigns 1 to 2 lenders to every eligible registered CMG. Those CMGs can then apply for loans. The eligibility criteria (for example, the group’s age and its savings) still have to be agreed (Q16).',
          rules:['Only lenders TAMISEMI designated to the council can be assigned.','Each eligible CMG is assigned 1 to 2 lenders.'],
@@ -562,9 +604,9 @@
       d:{what:'The lender assignment in step 11 triggers the invitation. The lender invites applications from the eligible CMGs it has been assigned to, and TAMISEMI is notified.',
          rules:['Triggered by the LGA assigning lenders to eligible CMGs (step 11).','TAMISEMI is notified when the invitations go out.','A lender cannot invite or accept applications from CMGs it has not been assigned to.'],
          money:['Information only: notice of invitations from the lender to TAMISEMI.']}},
-    C7:{lane:'chair',gate:'in',title:'Apply to the assigned lender',sum:'Documents and data the lender needs to appraise the loan.',status:'Applied (date)',
-      d:{what:'This is the IN gateway: applying brings the group inside the PAMOJA loan journey. The CMG applies to its assigned lender, with the documents and data the lender needs for its appraisal.',
-         rules:['A CMG can apply only to the lender the LGA allocated it to.']}},
+    C7:{lane:'chair',gate:'in',title:'Apply to an assigned lender',sum:'Documents and data the lender needs to appraise the loan.',status:'Applied (date)',
+      d:{what:'This is the IN gateway: applying brings the group inside the PAMOJA loan journey. The CMG applies to one of its assigned lenders, with the documents and data the lender needs for its appraisal.',
+         rules:['A CMG can apply only to the 1 to 2 lenders the LGA assigned to it.']}},
     F2:{lane:'fi',title:'Appraise and decide',sum:'Approves, possibly for less, or rejects with a clear reason.',status:'Approved or Rejected (date)',
       exc:'↩ Rejected, with a clear reason',
       d:{what:'The lender appraises the application and decides.',
@@ -609,8 +651,8 @@
          money:['Risk-sharing payment from TAMISEMI to the lender (part of flow 4 on the money map).'],
          rules:['Uses the risk-sharing formula agreed at lender appointment.'],
          q:['Q12']}},
-    T7:{lane:'tam',title:'Pay councils a service fee',sum:'Based on pool, successful loans and successful repayments.',
-      d:{what:'TAMISEMI pays each LGA a service fee, using an agreed formula that follows each stage: CMGs in the pool, loans successfully made, and loans successfully repaid.',
+    T7:{lane:'tam',title:'Pay councils a service fee',sum:'Based on eligible CMGs assigned lenders, successful loans and successful repayments.',
+      d:{what:'TAMISEMI pays each LGA a service fee, using an agreed formula that follows each stage: eligible CMGs assigned lenders, loans successfully made, and loans successfully repaid.',
          money:['Service fee from TAMISEMI to the LGA (flow 5).']}},
     T8:{lane:'tam',title:'Fund CMG incentives',sum:'Rewards on-time and early full repayment.',
       d:{what:'TAMISEMI funds incentives for CMGs, based on a set of agreed rules.',
@@ -619,10 +661,17 @@
   };
   var ORDER=['C1','C3','C5','C2','L1','C4','C6','T1','T2','T3','L3','F1','T4','C7','F2','C8','F3','C9','F4','SYS','F5','OUT','T6','T9','T7','T8'];
 
+  // Who is responsible for each step (its lane), and who else it affects. Shared-record steps go to the party that owns them.
+  var OWNER={}; ORDER.forEach(function(id){ OWNER[id]=N[id].lane; }); OWNER.SYS='fi'; OWNER.OUT='chair';
+  var AFF={C1:[],C3:['fi'],C5:[],C2:['lga'],L1:['chair'],C4:['lga','fi'],C6:['lga'],
+    T1:['fi'],T2:['fi'],T3:['lga','fi'],L3:['chair','fi'],F1:['chair','tam'],T4:['fi'],
+    C7:['fi'],F2:['chair'],C8:['fi'],F3:['chair'],C9:['fi'],F4:['chair','lga','tam'],SYS:['lga','tam'],F5:['lga','tam'],OUT:['fi','tam'],
+    T6:['fi'],T9:['fi'],T7:['lga'],T8:['chair']};
+
   var ZONES={
-    setup:{t:'Outside · Pre-loan',mh:'Pre-loan',ms:'Setting up',p:'Before the loan: the group registers and sets itself up; TAMISEMI, councils and lenders get ready.'},
+    setup:{t:'Pre-loan · Setting up',p:'Before the loan: the group registers and sets itself up; TAMISEMI, councils and lenders get ready.'},
     inside:{t:'Inside · The PAMOJA loan journey',p:'Starts when the group applies (▶ IN). Ends when it leaves (◀ OUT).'},
-    settle:{t:'Outside · Post-loan',mh:'Post-loan',ms:'Settlement',p:'TAMISEMI pays for results, every quarter.'}
+    settle:{t:'Post-loan · Settlement',p:'TAMISEMI pays for results, every quarter.'}
   };
   var LAYOUT=[
     {zone:'setup'},
@@ -632,7 +681,7 @@
     ['C2'],['L1'],['C4'],['C6'],
     {n:3,t:'TAMISEMI sets up the lenders',p:'Can run at the same time as stages 1 and 2'},
     ['T1'],['T2'],['T3'],
-    {n:4,t:'The council builds the loan pools',p:'Eligible groups are shared among the council’s lenders'},
+    {n:4,t:'The council assigns lenders to groups',p:'Each eligible group gets 1 to 2 of the council’s TAMISEMI designated lenders'},
     ['L3'],
     {n:5,t:'Invitations go out; money reaches the lenders',p:'The 15-working-day clock starts when the advance arrives'},
     ['F1'],['T4'],
@@ -658,7 +707,7 @@
     ['C2','L1','main','Documents'],['L1','C4','main','Registered'],['C4','C6','main'],
     ['T1','T2','main'],['T2','T3','main'],['T3','L3','main','2–3 lenders','side'],
     ['C6','L3','main','Group record'],
-    ['L3','T4','main','CMGs per lender','side'],['L3','F1','main','Triggers invitations'],['F1','T4','feed','Notifies TAMISEMI'],
+    ['L3','T4','main','Demand estimates','side'],['L3','F1','main','Triggers invitations'],['F1','T4','feed','Notifies TAMISEMI'],
     ['T4','F3','main','Advance','side'],
     ['F1','C7','main','Invitation'],['C7','F2','main','Application'],
     ['F2','C8','main','Offer'],['F2','C7','exc','Rejected, with reason'],
@@ -838,6 +887,7 @@
     if(n.gate) h+='<div class="gatetag '+n.gate+'">'+(n.gate==='in'?'▶ IN gateway':'◀ OUT gateway')+'</div>';
     if(n.status) h+='<div class="st">Status: '+n.status+'</div>';
     h+='<p>'+d.what+'</p>';
+    h+='<h4>Responsible</h4><p>'+LANES[OWNER[id]].name+(n.lane==='sys'?' (shared step)':'')+'</p><h4>Who else this affects</h4>'+(window.__affHTML?window.__affHTML(id):'');
     if(d.statuses) h+='<h4>The statuses</h4><div class="statuses">'+d.statuses.map(function(s){ return '<div><b style="color:'+s[2]+'">'+s[0]+'</b><span>'+s[1]+'</span></div>'; }).join('')+'</div>';
     if(d.paper) h+='<h4>Paper evidence</h4><div class="paper">📄 '+d.paper+'</div>';
     if(d.rules) h+='<h4>Rules</h4>'+list(d.rules);
@@ -873,8 +923,8 @@
   (function(){
     var sm=document.getElementById('sysmap');
     var SHORT={C1:'Form the group',C2:'Submit documents',L1:'Register in WEZESHA',C3:'Set the cycle',C4:'Track record',C5:'Group rules',C6:'Log meetings',
-      T1:'Select lenders',T2:'Sign contracts',T3:'Assign lenders to LGAs',L3:'Assign 1–2 TAMISEMI designated lenders to all eligible registered CMGs, who can then apply for loans',T4:'Release advances',F1:'Invite to apply',
-      C7:'Apply',F2:'Appraise, decide',C8:'Accept or refuse',F3:'Disburse',C9:'Repay',F4:'Record repayment',SYS:'Live loan status',F5:'Regular reports',OUT:'Leave the journey',
+      T1:'Select lenders',T2:'Sign contracts',T3:'Assign lenders to LGAs',L3:'Assign 1–2 lenders to eligible CMGs',T4:'Release advances',F1:'Invite to apply',
+      C7:'Apply to an assigned lender',F2:'Appraise, decide',C8:'Accept or refuse',F3:'Disburse',C9:'Repay',F4:'Record repayment',SYS:'Live loan status',F5:'Regular reports',OUT:'Leave the journey',
       T6:'Pay lenders',T9:'Settle defaults',T7:'Pay LGA fee',T8:'CMG incentives'};
     var rows=['chair','lga','fi','tam','sys'], ri={};
     rows.forEach(function(k,i){ ri[k]=i; });
@@ -890,7 +940,7 @@
     var h='<div class="sm-corner"></div>', g=0;
     while(g<cols.length){
       var z=cols[g].z, n=0; while(g+n<cols.length && cols[g+n].z===z) n++;
-      h+='<div class="sm-head '+(z==='inside'?'in':'out')+'" style="grid-column:span '+n+'"><b>'+(ZONES[z].mh||ZONES[z].t.split(' · ')[0])+'</b><span>'+(ZONES[z].ms||ZONES[z].t.split(' · ')[1])+'</span></div>';
+      h+='<div class="sm-head '+(z==='inside'?'in':'out')+'" style="grid-column:span '+n+'"><b>'+ZONES[z].t.split(' · ')[0]+'</b><span>'+ZONES[z].t.split(' · ')[1]+'</span></div>';
       g+=n;
     }
     rows.forEach(function(k,r){
@@ -906,6 +956,61 @@
     h+='<div></div><div class="sm-time" style="grid-column:span '+cols.length+'">Read each column top to bottom, then move right. Numbers never go back. <b>Time →</b></div>';
     sm.innerHTML=h;
     sm.querySelectorAll('.sm-step').forEach(function(b){ b.addEventListener('click', function(){ open(+b.dataset.i); }); });
+
+    // ── actor journey maps: each party's own steps as a loop, with who else each step affects ──
+    var AMSHORT={C7:'Apply to an assigned lender',OUT:'Leave the loan journey',SYS:'Share live loan status'};
+    function sname(id){ return AMSHORT[id]||SHORT[id]; }
+    var ACTORS=['tam','lga','fi','chair'];
+    var amTabs=document.getElementById('am-tabs'), ring=document.getElementById('am-ring'), amIn=document.getElementById('am-in'), who='tam';
+    function affHTML(id){
+      var a=AFF[id]||[];
+      if(!a.length) return '<span class="am-aff">No other party directly</span>';
+      return '<span class="am-aff">Affects '+a.map(function(k){ return '<span class="a" style="--c:var(--'+k+');--cbg:var(--'+k+'-bg)"><i></i>'+LANES[k].name+'</span>'; }).join('')+'</span>';
+    }
+    window.__affHTML=affHTML;
+    ACTORS.forEach(function(k){
+      var b=el('button','chip','<i style="background:var(--'+k+')"></i>'+LANES[k].name); b.type='button';
+      b.setAttribute('aria-pressed', k===who?'true':'false');
+      b.addEventListener('click', function(){ who=k; amTabs.querySelectorAll('.chip').forEach(function(x){ x.setAttribute('aria-pressed', x===b?'true':'false'); }); amBuild(); });
+      amTabs.appendChild(b);
+    });
+    var amSteps=[];
+    function amBuild(){
+      var ids=ORDER.filter(function(id){ return OWNER[id]===who; }), L=LANES[who];
+      ring.style.setProperty('--c','var(--'+who+')');
+      var h='<svg aria-hidden="true"></svg><div class="am-mid"><b>'+L.name+'</b><span>'+ids.length+' steps it is responsible for</span><span>↻ The loop starts again each cycle</span></div>';
+      ids.forEach(function(id){
+        var i=ORDER.indexOf(id);
+        h+='<button type="button" class="am-step" data-i="'+i+'" style="--c:var(--'+who+')"><span class="n">Step '+(i+1)+(N[id].gate==='in'?' · ▶ IN':N[id].gate==='out'?' · ◀ OUT':'')+'</span><span class="t">'+sname(id)+'</span>'+affHTML(id)+'</button>';
+      });
+      h+='<div class="am-back">↻ Back to step '+(ORDER.indexOf(ids[0])+1)+' at the next cycle</div>';
+      ring.innerHTML=h;
+      amSteps=[].slice.call(ring.querySelectorAll('.am-step'));
+      amSteps.forEach(function(b){ b.addEventListener('click', function(){ open(+b.dataset.i); }); });
+      // steps by other parties that affect this one
+      var inc=ORDER.filter(function(id){ return OWNER[id]!==who && (AFF[id]||[]).indexOf(who)>=0; });
+      amIn.innerHTML='<h3>What other parties do that affects '+(who==='tam'?'':'the ')+L.name+'</h3><div class="list">'+inc.map(function(id){ var i=ORDER.indexOf(id), o=OWNER[id];
+        return '<button type="button" data-i="'+i+'" style="--c:var(--'+o+')"><span>'+(i+1)+' · '+LANES[o].name+'</span>'+sname(id)+'</button>'; }).join('')+'</div>';
+      amIn.querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){ open(+b.dataset.i); }); });
+      amDraw();
+    }
+    function amDraw(){
+      var w=ring.clientWidth, list=w<700 || amSteps.length<1;
+      ring.classList.toggle('list', list);
+      var svg=ring.querySelector('svg'); if(list){ svg.innerHTML=''; return; }
+      var H=ring.clientHeight, cx=w/2, cy=H/2, rx=Math.min(w/2-100, 380), ry=H/2-58, n=amSteps.length, NSs='http://www.w3.org/2000/svg';
+      svg.setAttribute('viewBox','0 0 '+w+' '+H);
+      var g='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'"/>';
+      amSteps.forEach(function(b,i){
+        var t=-Math.PI/2+2*Math.PI*i/n;
+        b.style.left=(cx+rx*Math.cos(t))+'px'; b.style.top=(cy+ry*Math.sin(t))+'px';
+        var m=t+Math.PI/n, x=cx+rx*Math.cos(m), y=cy+ry*Math.sin(m), a=Math.atan2(ry*Math.cos(m), -rx*Math.sin(m))*180/Math.PI;
+        g+='<path class="ah" d="M-8,-7 L9,0 L-8,7 z" transform="translate('+x+','+y+') rotate('+a+')"/>';
+      });
+      svg.innerHTML=g;
+    }
+    new ResizeObserver(function(){ requestAnimationFrame(amDraw); }).observe(ring);
+    amBuild();
   })();
   var ql=document.getElementById('qlist');
   var dl=document.getElementById('dlist');
