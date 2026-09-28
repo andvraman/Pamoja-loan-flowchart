@@ -99,6 +99,8 @@ button:disabled{opacity:.5;cursor:default}
     spreadsheet. <span class="badge">Draft — all figures are placeholders</span></p>
 
   <div class="tiles" id="tiles"></div>
+  <p class="note" style="margin:-10px 0 20px">Lender's net result and Corpus restored assume one lump loan cycle
+    (not the month-by-month timing on the &ldquo;Monthly cycle&rdquo; sheet) — a quick check, not the final number.</p>
 
   <div class="grid">
     <div>
@@ -123,10 +125,16 @@ button:disabled{opacity:.5;cursor:default}
 
         <div class="group-label">Split of interest collected</div>
         <div class="row"><label for="sdef">Default budget (loss reserve)</label><span class="u">%</span><input id="sdef" type="number" step="1" min="0"></div>
-        <div class="row"><label for="stam">TAMISEMI share</label><span class="u">%</span><input id="stam" type="number" step="1" min="0"></div>
-        <div class="row"><label for="sreg">Region share</label><span class="u">%</span><input id="sreg" type="number" step="1" min="0"></div>
-        <div class="row"><label for="slga">LGA share</label><span class="u">%</span><input id="slga" type="number" step="1" min="0"></div>
+        <div class="row"><label for="stam">TAMISEMI share of interest</label><span class="u">%</span><input id="stam" type="number" step="1" min="0"></div>
+        <div class="row"><label for="sreg">Region service fee</label><span class="u">%</span><input id="sreg" type="number" step="1" min="0"></div>
+        <div class="row"><label for="slga">LGA service fee</label><span class="u">%</span><input id="slga" type="number" step="1" min="0"></div>
         <div class="row"><label>Lender margin (remainder)</label><span class="u">%</span><b id="slen" style="width:118px;text-align:right;font-variant-numeric:tabular-nums"></b></div>
+
+        <div class="group-label">Principal settlement and risk share</div>
+        <div class="row"><label for="ptam">TAMISEMI share of repaid principal</label><span class="u">%</span><input id="ptam" type="number" step="1" min="0" max="100"></div>
+        <div class="row"><label>Lender share of repaid principal (remainder)</label><span class="u">%</span><b id="plen" style="width:118px;text-align:right;font-variant-numeric:tabular-nums"></b></div>
+        <div class="row"><label for="rtam">TAMISEMI risk share of defaults</label><span class="u">%</span><input id="rtam" type="number" step="5" min="0" max="100"></div>
+        <div class="row"><label>Lender risk share of defaults (remainder)</label><span class="u">%</span><b id="rlen" style="width:118px;text-align:right;font-variant-numeric:tabular-nums"></b></div>
       </div>
     </div>
 
@@ -166,10 +174,12 @@ button:disabled{opacity:.5;cursor:default}
 <script>
 (function(){
   'use strict';
-  var INPUT_KEYS = ["fund","linc","cinc","ratio","rate","maxterm","term","def","lastm","relend","sdef","stam","sreg","slga"];
-  var PCT_KEYS = {ratio:false, rate:true, def:true, relend:true, sdef:true, stam:true, sreg:true, slga:true};
+  var INPUT_KEYS = ["fund","linc","cinc","ratio","rate","maxterm","term","def","lastm","relend",
+    "sdef","stam","sreg","slga","ptam","rtam"];
+  var PCT_KEYS = {ratio:false, rate:true, def:true, relend:true, sdef:true, stam:true, sreg:true, slga:true,
+    ptam:true, rtam:true};
   var DEFAULT_INPUTS = {fund:24000000, linc:2000000, cinc:2000000, ratio:0.5, rate:0.18, maxterm:12, term:6,
-    def:0.05, lastm:12, relend:0.0, sdef:0.30, stam:0.10, sreg:0.05, slga:0.05};
+    def:0.05, lastm:12, relend:0.0, sdef:0.30, stam:0.10, sreg:0.05, slga:0.05, ptam:1.00, rtam:0.50};
   var DEFAULT_DISTRICTS = [
     {name:"District A", cmgs:2500, savings:4000, loan_ask:2500},
     {name:"District B", cmgs:1800, savings:3000, loan_ask:2000},
@@ -211,10 +221,28 @@ button:disabled{opacity:.5;cursor:default}
     var totalAlloc = rows.reduce(function(s,r){return s+r.allocation;},0);
     var slen = 1 - (inp.sdef+inp.stam+inp.sreg+inp.slga);
     var termOk = inp.term>=1 && inp.term<=inp.maxterm;
-    var breakEven = slen>=0 ? (inp.sdef*inp.rate*inp.term/12)/(1+inp.sdef*inp.rate*inp.term/12) : NaN;
+    var plen = 1 - inp.ptam, rlen = 1 - inp.rtam;
+    var k = inp.rate*inp.term/12;
+    var breakEven = (slen>=0 && inp.rtam>0) ? (inp.sdef*k)/(inp.rtam+inp.sdef*k) : NaN;
     var totalCMGs = state.districts.reduce(function(s,d){return s+(d.cmgs||0);},0);
+
+    // One-cycle approximation of the Fund flow sheet (a single disbursement of totalAlloc,
+    // not the month-by-month timing on the 'Monthly cycle' sheet).
+    var dft = totalAlloc*inp.def;
+    var repaidGross = totalAlloc - dft;
+    var interest = repaidGross*k;
+    var toCorp = repaidGross*inp.ptam;
+    var lenKeep = repaidGross - toCorp;
+    var dTam = dft*inp.rtam, dLen = dft*rlen;
+    var defBudget = interest*inp.sdef;
+    var lenMargin = interest*slen;
+    var lenNet = lenMargin - dLen + lenKeep;
+    var corpusEnd = corpus - dTam - lenKeep + defBudget;
+    var corpusRestored = corpusEnd >= corpus - 0.5;
+
     return {corpus:corpus, rows:rows, totalDemand:totalDemand, scale:scale, totalAlloc:totalAlloc,
-            slen:slen, termOk:termOk, breakEven:breakEven, totalCMGs:totalCMGs};
+            slen:slen, plen:plen, rlen:rlen, termOk:termOk, breakEven:breakEven, totalCMGs:totalCMGs,
+            dTam:dTam, dLen:dLen, lenNet:lenNet, corpusEnd:corpusEnd, corpusRestored:corpusRestored};
   }
 
   function render(){
@@ -226,14 +254,18 @@ button:disabled{opacity:.5;cursor:default}
       {label:"Total CMGs (all districts)", val: c.totalCMGs.toLocaleString()},
       {label:"Total demand", val: fmtUSD(c.totalDemand)},
       {label:"Scale factor", val: (Math.round(c.scale*1000)/10)+"%", cls: c.scale<1?"warn":"ok"},
-      {label:"Lender margin", val: fmtPct(c.slen), cls: c.slen<0?"bad":""},
+      {label:"Lender margin (interest)", val: fmtPct(c.slen), cls: c.slen<0?"bad":""},
       {label:"Break-even default rate", val: isNaN(c.breakEven)?"—":fmtPct(c.breakEven)},
+      {label:"Lender's net result (1 cycle)", val: fmtUSD(c.lenNet), cls: c.lenNet<0?"bad":"ok"},
+      {label:"Corpus restored? (1 cycle)", val: c.corpusRestored?"Yes":"No", cls: c.corpusRestored?"ok":"bad"},
     ];
     document.getElementById('tiles').innerHTML = tiles.map(function(t){
       return '<div class="tile '+(t.cls||'')+'"><span>'+t.label+'</span><b>'+t.val+'</b></div>';
     }).join('');
 
     document.getElementById('slen').textContent = fmtPct(c.slen);
+    document.getElementById('plen').textContent = fmtPct(c.plen);
+    document.getElementById('rlen').textContent = fmtPct(c.rlen);
 
     var tbody = document.getElementById('districtRows');
     tbody.innerHTML = '';

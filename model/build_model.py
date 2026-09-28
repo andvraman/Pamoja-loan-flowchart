@@ -1,4 +1,4 @@
-"""Builds PAMOJA_Financial_Model_v0.3.xlsx (simple fund-flow model).
+"""Builds PAMOJA_Financial_Model_v0.4.xlsx (simple fund-flow model).
 Run: python3 model/build_model.py [config.json]   (needs openpyxl)
 All numbers in blue on yellow are inputs. Everything else is a formula.
 
@@ -15,7 +15,7 @@ from openpyxl.chart import BarChart, Reference
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter as col
 
-VERSION = "v0.3"
+VERSION = "v0.4"
 OUT = f"model/PAMOJA_Financial_Model_{VERSION}.xlsx"
 MONTHS = 24          # year 1 (lending) + year 2 (loans made late in year 1 finish)
 
@@ -25,6 +25,8 @@ DEFAULT_INPUTS = {
     "ratio": 0.5, "rate": 0.18, "maxterm": 12, "term": 6, "def": 0.05,
     "lastm": 12, "relend": 0.0,
     "sdef": 0.30, "stam": 0.10, "sreg": 0.05, "slga": 0.05,
+    "ptam": 1.00,   # TAMISEMI share of repaid principal (remainder kept by lender)
+    "rtam": 0.50,   # TAMISEMI risk share of defaults (remainder is the lender's risk share)
 }
 DEFAULT_DISTRICTS = [
     {"name": "District A", "cmgs": 2500, "savings": 4000, "loan_ask": 2500},
@@ -140,6 +142,12 @@ QUESTIONS = [
      "Recoveries would add money back to the corpus later.", "v0.2"),
     (11, "Who should be able to edit the 'PAMOJA Model Inputs' GUI, and does each district need its own editor?",
      "The GUI page is currently shared only with its owner; wider access needs a deliberate share decision.", "v0.3"),
+    (12, "What should the risk share of defaults between TAMISEMI and the lender actually be, and should it "
+     "vary by lender or by performance? Should the lender ever keep part of the repaid principal instead of "
+     "returning all of it to TAMISEMI?",
+     "Placeholders now: TAMISEMI absorbs 50% of every default, the lender the other 50%; the lender returns "
+     "100% of repaid principal to TAMISEMI. Matches question 12 on the flowchart (trigger and timing of risk "
+     "share are still open).", "v0.4"),
 ]
 
 # ---------------------------------------------------------------- Read me
@@ -175,6 +183,17 @@ lines = [
     "  Run: python3 model/build_model.py config.json",
     "- Fund flow now has a bar chart: money not lent, principal repaid, interest collected.",
     "",
+    "CHANGES IN v0.4",
+    "- Region share and LGA share of interest renamed to Region service fee and LGA service fee.",
+    "- New: TAMISEMI share of repaid principal (default 100%) - the rest is kept by the lender.",
+    "- New: Risk share of defaults, split between TAMISEMI and the lender. TAMISEMI absorbs its",
+    "  share against the corpus; the lender absorbs the remainder (a computed field) as its own loss,",
+    "  and pays that amount back into the fund as risk-share compensation.",
+    "- Fund flow shows both settlements and a 'Lender's net result' line (margin - own risk share",
+    "  of defaults + principal kept back).",
+    "- Break-even default rate and the default budget needed now only have to cover TAMISEMI's",
+    "  risk share of defaults, not the whole default.",
+    "",
     "SIMPLE LOGIC",
     "- Lending corpus = Total fund - Lender incentives - CMG incentives.",
     "- Loan per CMG = the smaller of: average loan asked for, or savings x maximum Loan:Savings ratio.",
@@ -183,7 +202,12 @@ lines = [
     "- Interest is flat: rate x loan x term, collected with each instalment.",
     "- Defaults: the default rate is taken off every instalment (no principal or interest).",
     "- Re-lending: a % of principal repaid in one month is lent out again the next month, up to the last lending month.",
-    "- The corpus is restored if the default budget taken from interest covers the defaulted principal.",
+    "- Of every instalment repaid, TAMISEMI's share of repaid principal returns to the fund; the rest",
+    "  stays with the lender.",
+    "- Of every default, TAMISEMI absorbs its risk share against the corpus; the lender absorbs the",
+    "  rest and pays that amount back into the fund.",
+    "- The corpus is restored if the default budget (from interest) covers TAMISEMI's risk share of",
+    "  the defaulted principal, after the lender's risk-share payment and any principal it keeps.",
     "",
     "KEY TRADE-OFF",
     "- For all money to be back as CASH by month 12, the last loan must go out by month (12 - term).",
@@ -229,15 +253,24 @@ I = table(ip, 5, [
      lambda a: f"=MAX(0,12-B{a['term']})", "0", "month", "0 means only at the very start of the year"),
     (None, "SPLIT OF INTEREST COLLECTED", None, None, None, None),
     ("sdef", "Default budget (loss reserve)", CFG["sdef"], PCT, "%", "Returned to fund to cover defaults"),
-    ("stam", "TAMISEMI share", CFG["stam"], PCT, "%", "Placeholder"),
-    ("sreg", "Region share", CFG["sreg"], PCT, "%", "Placeholder"),
-    ("slga", "LGA share", CFG["slga"], PCT, "%", "Placeholder"),
+    ("stam", "TAMISEMI share of interest", CFG["stam"], PCT, "%", "Placeholder"),
+    ("sreg", "Region service fee", CFG["sreg"], PCT, "%", "Placeholder"),
+    ("slga", "LGA service fee", CFG["slga"], PCT, "%", "Placeholder"),
     ("slen", "Lender margin (remainder)", lambda a: f"=1-SUM(B{a['sdef']}:B{a['slga']})", PCT, "%",
      "What is left for the lender"),
     ("splitok", "Check: split adds to 100% or less",
      lambda a: f'=IF(B{a["slen"]}>=0,"OK","ERROR: over 100%")', "@", "", ""),
+    (None, "PRINCIPAL SETTLEMENT AND RISK SHARE", None, None, None, None),
+    ("ptam", "TAMISEMI share of repaid principal", CFG["ptam"], PCT, "%",
+     "Share of every repaid instalment returned to the TAMISEMI corpus"),
+    ("plen", "Lender share of repaid principal (remainder)", lambda a: f"=1-B{a['ptam']}", PCT, "%",
+     "Kept by the lender; computed from the TAMISEMI share above"),
+    ("rtam", "TAMISEMI risk share of defaults", CFG["rtam"], PCT, "%",
+     "Share of every default TAMISEMI absorbs against the corpus. Placeholder - see question 12"),
+    ("rlen", "Lender risk share of defaults (remainder)", lambda a: f"=1-B{a['rtam']}", PCT, "%",
+     "The lender's own loss on a default; computed from the TAMISEMI risk share above"),
 ])
-for key in ("corpus", "slen", "termok", "splitok", "cashm"):
+for key in ("corpus", "slen", "termok", "splitok", "cashm", "plen", "rlen"):
     ip[f"B{I[key]}"].font = BOLD
 for L, w in zip("ABCD", (48, 16, 8, 58)):
     ip.column_dimensions[L].width = w
@@ -299,14 +332,16 @@ LC = col(MONTHS + 2)                     # total column
 header(mo, 4, ["Line"] + [f"M{m}" for m in range(1, MONTHS + 1)] + ["Total"])
 M = {k: r for r, k in enumerate(
     ["month", "year", "pct", "new", "relent", "disb", "due", "repaid", "interest",
-     "reserve", "out", "cash", "total", "backflag"], 5)}
+     "reserve", "tocorp", "lencomp", "out", "cash", "total", "backflag"], 5)}
 labels = {
     "month": "Month number", "year": "Year",
     "pct": "% of allocation lent as NEW loans this month",
     "new": "New loans from the corpus", "relent": "Re-lent repayments",
     "disb": "Total loans made this month", "due": "Principal due",
-    "repaid": "Principal repaid (after defaults)", "interest": "Interest collected",
+    "repaid": "Principal repaid by CMGs (gross, after defaults)", "interest": "Interest collected",
     "reserve": "Default budget returned to fund",
+    "tocorp": "TAMISEMI's share of repaid principal (to fund cash)",
+    "lencomp": "Lender's risk-share compensation for defaults (to fund cash)",
     "out": "Loans outstanding (end of month)", "cash": "Fund cash on hand (end of month)",
     "total": "Cash + loans outstanding", "backflag": "(helper) month if cash is back to corpus",
 }
@@ -339,13 +374,17 @@ for m in range(1, MONTHS + 1):
     mo[f"{c}{M['repaid']}"] = f"={c}{M['due']}*(1-{DEF})"
     mo[f"{c}{M['interest']}"] = f"={c}{M['repaid']}*{RATE}/12*{TERM}"
     mo[f"{c}{M['reserve']}"] = f"={c}{M['interest']}*{R('sdef')}"
+    mo[f"{c}{M['tocorp']}"] = f"={c}{M['repaid']}*{R('ptam')}"
+    mo[f"{c}{M['lencomp']}"] = f"=({c}{M['due']}-{c}{M['repaid']})*{R('rlen')}"
     prev_out = "0" if m == 1 else f"{p}{M['out']}"
     mo[f"{c}{M['out']}"] = f"={prev_out}+{c}{M['disb']}-{c}{M['due']}"
     prev_cash = CORPUS if m == 1 else f"{p}{M['cash']}"
-    mo[f"{c}{M['cash']}"] = f"={prev_cash}-{c}{M['disb']}+{c}{M['repaid']}+{c}{M['reserve']}"
+    mo[f"{c}{M['cash']}"] = (f"={prev_cash}-{c}{M['disb']}+{c}{M['tocorp']}"
+                             f"+{c}{M['lencomp']}+{c}{M['reserve']}")
     mo[f"{c}{M['total']}"] = f"={c}{M['cash']}+{c}{M['out']}"
     mo[f"{c}{M['backflag']}"] = f"=IF({c}{M['cash']}>={CORPUS}-0.5,{c}{M['month']},999)"
-    for k in ("new", "relent", "disb", "due", "repaid", "interest", "reserve", "out", "cash", "total"):
+    for k in ("new", "relent", "disb", "due", "repaid", "interest", "reserve",
+              "tocorp", "lencomp", "out", "cash", "total"):
         mo[f"{c}{M[k]}"].number_format = USD
     if m == 12:
         for k in M:
@@ -353,7 +392,7 @@ for m in range(1, MONTHS + 1):
 first, lastc = "B", col(MONTHS + 1)
 mo[f"{LC}{M['pct']}"] = f"=SUM(B{M['pct']}:M{M['pct']})"
 mo[f"{LC}{M['pct']}"].number_format = PCT
-for k in ("new", "relent", "disb", "due", "repaid", "interest", "reserve"):
+for k in ("new", "relent", "disb", "due", "repaid", "interest", "reserve", "tocorp", "lencomp"):
     mo[f"{LC}{M[k]}"] = f"=SUM({first}{M[k]}:{lastc}{M[k]})"
     mo[f"{LC}{M[k]}"].number_format, mo[f"{LC}{M[k]}"].font = USD, BOLD
 for k in ("disb", "cash", "out"):
@@ -382,8 +421,10 @@ for i, (lab, f, fmt) in enumerate(snap, S + 1):
     mo[f"A{i}"], mo[f"B{i}"] = lab, f
     mo[f"B{i}"].number_format, mo[f"B{i}"].font = fmt, BOLD
     SN[lab] = i
-mo[f"A{i + 2}"] = ("Note: fund cash counts principal repaid plus the default-budget share of interest. "
-                   "Other interest shares go to TAMISEMI, region, LGA and the lender. The thick line marks year end.")
+mo[f"A{i + 2}"] = ("Note: fund cash counts TAMISEMI's share of repaid principal, the lender's risk-share "
+                   "compensation for defaults, and the default-budget share of interest. Interest shares also go "
+                   "to TAMISEMI, the region, the LGA and the lender; any repaid principal kept by the lender does "
+                   "not come back to the fund. The thick line marks year end.")
 mo.column_dimensions["A"].width = 52
 for m in range(2, MONTHS + 3):
     mo.column_dimensions[col(m)].width = 13
@@ -412,31 +453,45 @@ F = table(ff, 5, [
     ("loans", "Total loans to CMGs", lambda a: f"=B{a['adv']}+B{a['relent']}", USD, "Lenders -> CMGs", ""),
     (None, "2. MONEY BACK FROM CMGs", None, None, None, None),
     ("dft", "Principal defaulted", lambda a: f"=B{a['loans']}*{DEF}", USD, "", "Loans x default rate"),
-    ("rep", "Principal repaid", f"={MO('repaid')}", USD, "CMGs -> Lenders", "Loans - defaults"),
+    ("rep", "Principal repaid by CMGs (gross)", f"={MO('repaid')}", USD, "CMGs -> Lenders", "Loans - defaults"),
+    ("tocorp", "TAMISEMI's share of repaid principal", f"={MO('tocorp')}", USD, "Lenders -> TAMISEMI",
+     "Repaid gross x TAMISEMI share of repaid principal"),
+    ("lenkeep", "Kept by the lender (repaid principal not returned)",
+     lambda a: f"=B{a['rep']}-B{a['tocorp']}", USD, "Kept by lenders", "Repaid gross x lender share"),
     ("int", "Interest collected", f"={MO('interest')}", USD, "CMGs -> Lenders", "Flat: repaid x rate x term/12"),
     ("tot", "Total repayments", lambda a: f"=B{a['rep']}+B{a['int']}", USD, "CMGs -> Lenders", ""),
     (None, "3. SPLIT OF INTEREST", None, None, None, None),
     ("sdef", "Default budget (loss reserve)", lambda a: f"=B{a['int']}*{R('sdef')}", USD, "Lenders -> TAMISEMI", ""),
-    ("stam", "TAMISEMI share", lambda a: f"=B{a['int']}*{R('stam')}", USD, "Lenders -> TAMISEMI", ""),
-    ("sreg", "Region share", lambda a: f"=B{a['int']}*{R('sreg')}", USD, "-> Region", ""),
-    ("slga", "LGA share", lambda a: f"=B{a['int']}*{R('slga')}", USD, "-> LGA", ""),
-    ("slen", "Lender margin", lambda a: f"=B{a['int']}*{R('slen')}", USD, "Kept by lenders", "Remainder"),
-    (None, "4. CORPUS CHECK (after all loans close)", None, None, None, None),
+    ("stam", "TAMISEMI share of interest", lambda a: f"=B{a['int']}*{R('stam')}", USD, "Lenders -> TAMISEMI", ""),
+    ("sreg", "Region service fee", lambda a: f"=B{a['int']}*{R('sreg')}", USD, "-> Region", ""),
+    ("slga", "LGA service fee", lambda a: f"=B{a['int']}*{R('slga')}", USD, "-> LGA", ""),
+    ("slen", "Lender margin (from interest)", lambda a: f"=B{a['int']}*{R('slen')}", USD, "Kept by lenders", "Remainder"),
+    (None, "4. RISK SHARE OF DEFAULTS", None, None, None, None),
+    ("dtam", "TAMISEMI's risk share of defaults (absorbed by TAMISEMI)",
+     lambda a: f"=B{a['dft']}*{R('rtam')}", USD, "Loss to TAMISEMI", "Defaulted principal x TAMISEMI risk share"),
+    ("dlen", "Lender's risk share of defaults (the lender's own loss)",
+     lambda a: f"=B{a['dft']}*{R('rlen')}", USD, "Loss to lender", "Defaulted principal x lender risk share"),
+    ("comp", "Lender's risk-share compensation paid into the fund",
+     f"={MO('lencomp')}", USD, "Lenders -> TAMISEMI", "Should equal the lender's risk share above"),
+    ("lennet", "Lender's net result (margin - own risk share - principal kept)",
+     lambda a: f"=B{a['slen']}-B{a['dlen']}+B{a['lenkeep']}", USD, "", "Whether lending is worth it for the lender"),
+    (None, "5. CORPUS CHECK (after all loans close)", None, None, None, None),
     ("start", "Corpus at start", f"={CORPUS}", USD, "", ""),
-    ("lost", "Less principal defaulted", lambda a: f"=-B{a['dft']}", USD, "", ""),
-    ("add", "Plus default budget added back", lambda a: f"=B{a['sdef']}", USD, "", "Covers the defaulted principal"),
-    ("end", "Corpus at end", lambda a: f"=B{a['start']}+B{a['lost']}+B{a['add']}", USD, "", ""),
+    ("lost", "Less: TAMISEMI's risk share of defaults", lambda a: f"=-B{a['dtam']}", USD, "", ""),
+    ("lostp", "Less: repaid principal kept by the lender", lambda a: f"=-B{a['lenkeep']}", USD, "", ""),
+    ("add", "Plus default budget added back", lambda a: f"=B{a['sdef']}", USD, "", "Covers TAMISEMI's risk share of defaults"),
+    ("end", "Corpus at end", lambda a: f"=B{a['start']}+B{a['lost']}+B{a['lostp']}+B{a['add']}", USD, "", ""),
     ("gap", "Gap (end - start)", lambda a: f"=B{a['end']}-B{a['start']}", USD, "", "Negative = corpus NOT restored"),
     ("res", "Result", lambda a: f'=IF(B{a["gap"]}>=-0.5,"Corpus restored",'
                                 '"Corpus NOT restored - raise interest share for defaults or rate")', "@", "", ""),
-    ("need", "Default budget needed (% of interest)", lambda a: f"=IF(B{a['int']}=0,0,B{a['dft']}/B{a['int']})",
-     PCT, "", "Minimum share of interest to cover defaults"),
+    ("need", "Default budget needed (% of interest)", lambda a: f"=IF(B{a['int']}=0,0,B{a['dtam']}/B{a['int']})",
+     PCT, "", "Minimum share of interest to cover TAMISEMI's risk share of defaults"),
     ("be", "Break-even default rate",
-     f"={R('sdef')}*{RATE}*{TERM}/12/(1+{R('sdef')}*{RATE}*{TERM}/12)", PCT, "",
-     "Highest default rate the current split can cover"),
+     f"={R('sdef')}*{RATE}*{TERM}/12/({R('rtam')}+{R('sdef')}*{RATE}*{TERM}/12)", PCT, "",
+     "Highest default rate the current split and risk share can cover"),
     ("tie", "Check: matches month-24 cash on 'Monthly cycle'",
      lambda a: f"=IF(ABS(B{a['end']}-'Monthly cycle'!{lastc}{M['cash']})<1,\"OK\",\"ERROR\")", "@", "", ""),
-    (None, "5. YEAR-END TIMING (from 'Monthly cycle')", None, None, None, None),
+    (None, "6. YEAR-END TIMING (from 'Monthly cycle')", None, None, None, None),
     ("ye_cash", "Cash back in the fund at month 12", f"='Monthly cycle'!B{SN['Fund cash on hand at month 12']}",
      USD, "", ""),
     ("ye_out", "Still out on loan at month 12",
@@ -445,7 +500,7 @@ F = table(ff, 5, [
     ("ye_back", "First month corpus fully back as cash",
      f"='Monthly cycle'!B{SN['First month the corpus is fully back as cash']}", "0", "", ""),
 ])
-for k in ("end", "res", "loans"):
+for k in ("end", "res", "loans", "lennet"):
     ff[f"A{F[k]}"].font = ff[f"B{F[k]}"].font = BOLD
 for Lc, w in zip("ABCD", (44, 18, 24, 48)):
     ff.column_dimensions[Lc].width = w
@@ -496,25 +551,29 @@ terms = [
     ("Advance", "Money TAMISEMI sends a lender ahead of lending, based on the CMG pool allocated to that lender."),
     ("Allocation", "The share of the lending corpus given to a district, based on its loan demand."),
     ("Annual cycle", "The CMG's savings year. Loans must be repaid before the share-out at the end."),
-    ("Break-even default rate", "The highest default rate the default budget can cover and still restore the corpus."),
+    ("Break-even default rate", "The highest default rate the default budget and TAMISEMI's risk share can cover and still restore the corpus."),
     ("CMG", "Community Microfinance Group: a savings group whose members save and lend to each other."),
     ("Corpus", "The pool of money available to lend ($24m less the $4m set aside for incentives)."),
     ("Default", "A loan, or part of a loan, that is not repaid."),
-    ("Default budget / loss reserve", "The share of interest set aside to cover defaults."),
+    ("Default budget / loss reserve", "The share of interest set aside to cover TAMISEMI's risk share of defaults."),
     ("Demand", "Number of CMGs x loan per CMG, before any scaling down."),
     ("Flat interest", "Interest worked out on the full loan amount for the whole term, not on the falling balance."),
     ("Incentive", "A payment to reward good results (lenders: lending well; CMGs: on-time repayment)."),
     ("Instalment", "One of the equal monthly repayments of a loan."),
-    ("Lender margin", "The share of interest the lender keeps after all other shares are paid."),
+    ("Lender margin", "The share of interest the lender keeps after the default budget and the TAMISEMI/region/LGA shares are paid, before its risk share of defaults."),
+    ("Lender's net result", "Lender margin, less the lender's own risk share of defaults, plus any repaid principal the lender keeps instead of returning to TAMISEMI."),
     ("LGA", "Local Government Authority: the district or council."),
     ("Loan:Savings ratio", "Loan amount divided by the CMG's savings. Capped by the maximum ratio input."),
     ("Portfolio default rate", "Defaulted principal as a % of all loans made."),
     ("Principal", "The amount lent, not counting interest."),
     ("Re-lending / revolving fund", "Lending repayments out again instead of holding them as cash."),
+    ("Risk share", "How the loss on a defaulted loan is split between TAMISEMI (absorbed against the corpus) and the lender (its own loss, repaid to the fund as compensation)."),
     ("Run-off", "The period after lending stops, while loans already made are being repaid."),
     ("Scale factor", "The % of demand that can be met when demand is more than the corpus."),
+    ("Service fee", "The Region and LGA shares of interest collected (previously called Region/LGA share)."),
     ("Share-out", "When the CMG shares its savings and profits among members at the end of the cycle."),
     ("TAMISEMI", "President's Office - Regional Administration and Local Government (Tanzania). Funds PAMOJA."),
+    ("TAMISEMI share of repaid principal", "The % of every repaid instalment's principal that returns to the TAMISEMI corpus; the rest is kept by the lender."),
     ("Tenure / term", "How long a loan runs, in months, from disbursement to the last instalment."),
     ("Turnover", "Total loans made in a year divided by the corpus: how many times the money was lent."),
     ("TZS / USD", "Tanzanian shilling / United States dollar."),
