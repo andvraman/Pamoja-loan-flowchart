@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PAMOJA Loan Journey v3.12</title>
-<meta name="description" content="Interactive flowchart of the PAMOJA CMG loan journey, version 3.12: group registration, lender set-up, lender assignment, lending, repayment, reporting and results-based payments.">
+<title>PAMOJA Loan Journey v3.13</title>
+<meta name="description" content="Interactive flowchart of the PAMOJA CMG loan journey, version 3.13: group registration, lender set-up, lender assignment, lending, repayment, reporting and results-based payments.">
 <style>
   :root{
     --ground:#eef1ea; --card:#ffffff; --card-2:#f5f7f1;
@@ -350,7 +350,7 @@
 </head>
 <body>
 <main>
-  <div class="eyebrow">PAMOJA · CMG loan journey · Version 3.12 (draft for review)</div>
+  <div class="eyebrow">PAMOJA · CMG loan journey · Version 3.13 (draft for review)</div>
   <h1>The PAMOJA loan journey, from a new group to results-based payments</h1>
   <p class="lede">Four parties share one loan record. Each box is a step someone takes. Follow the arrows down, or press <b>Walk me through it</b> to go step by step. Click any box for the detail. Step numbers show a typical order for one group, not a timeline; where a step has a <b>how often</b> tag, it shows when that step really happens. The <b>actor journey maps</b> show each party’s own loop of steps. Steps marked <span class="qtag">? open</span> have questions still to settle. The green frame marks the PAMOJA loan journey itself (“inside”); faded, dashed steps are outside it.</p>
   <section class="sysmap-wrap" aria-label="System map">
@@ -453,8 +453,8 @@
         <tr><td><b>1</b></td><td>Advance</td><td>TAMISEMI → Lender</td><td>Based on demand estimates. The lender must lend it out within 15 working days. Timing is a working assumption (Q6).</td></tr>
         <tr><td><b>2</b></td><td>Loan</td><td>Lender → CMG bank account</td><td>At or below TAMISEMI’s interest ceiling. Schedule ends before the CMG’s cycle end date.</td></tr>
         <tr><td><b>3</b></td><td>Repayments, with interest</td><td>CMG → Lender’s single PAMOJA account</td><td>With a control number. Instalments or one bullet payment. Early repayment allowed. Fully repaid before the share-out.</td></tr>
-        <tr><td><b>4</b></td><td>Repayments passed back, with interest</td><td>Lender → TAMISEMI</td><td>Step 23. The lender passes the repayments it collects, with interest, back to TAMISEMI. <span class="qtag">? open</span> When and how is not yet agreed (Q17).</td></tr>
-        <tr><td><b>5</b></td><td>Unused funds returned</td><td>Lender → TAMISEMI</td><td>Step 23. Advance funds the lender does not lend out are returned to TAMISEMI.</td></tr>
+        <tr><td><b>4</b></td><td>Repayments passed back, with interest</td><td>Lender → TAMISEMI</td><td>Step 24. The lender passes the repayments it collects, with interest, back to TAMISEMI. <span class="qtag">? open</span> When and how is not yet agreed (Q17).</td></tr>
+        <tr><td><b>5</b></td><td>Unused funds returned</td><td>Lender → TAMISEMI</td><td>Step 24. Advance funds the lender does not lend out are returned to TAMISEMI.</td></tr>
         <tr><td><b>6</b></td><td>Lender incentives and risk share</td><td>TAMISEMI → Lender</td><td>Quarterly. Risk share on defaulted loans, by the agreed formula (default trigger open, Q12).</td></tr>
         <tr><td><b>7</b></td><td>Service fee</td><td>TAMISEMI → LGA</td><td>Quarterly. Agreed formula: eligible CMGs assigned lenders, then successful loans, then successful repayments.</td></tr>
         <tr><td><b>8A</b></td><td>Incentives (direct)</td><td>TAMISEMI → CMG bank account</td><td>Option A. Rewards on-time and early full repayment. <span class="qtag">? open</span> Route not agreed (Q14).</td></tr>
@@ -479,7 +479,10 @@
       <div><b>Amount</b><span>The lender may approve less than requested.</span></div>
       <div><b>Rejections</b><span>Every rejection needs a clear reason.</span></div>
       <div><b>Eligibility</b><span>TAMISEMI sets national minimum criteria. Each LGA may add its own. The criteria (such as age and savings) are still to be agreed (Q16).</span></div>
-      <div><b>Choice</b><span>The group may accept or refuse each loan. Accepting needs a meeting with a quorum.</span></div>
+      <div><b>Offer and contract</b><span>Every offer comes with a loan contract and simplified key disclosures, including loan utilisation restrictions.</span></div>
+      <div><b>Choice</b><span>The group may accept or refuse each loan. Accepting needs a meeting with a quorum, and means the group has understood the terms and key disclosures.</span></div>
+      <div><b>Signing</b><span>The group signs the loan contract with the lender before any money is paid out.</span></div>
+      <div><b>After a default</b><span>The group may not be eligible for a new loan for a set period (Q18).</span></div>
       <div><b>Disbursement</b><span>Within 15 working days of the advance reaching the lender.</span></div>
       <div><b>Repayment deadline</b><span>Before the cycle ends and before the group’s share-out.</span></div>
       <div><b>Early repayment</b><span>Allowed: the group may repay the whole balance at any time.</span></div>
@@ -495,7 +498,7 @@
   <!-- ── Open questions ── -->
   <section class="sec" id="questions">
     <h2 class="sec-h">Open questions to settle</h2>
-    <p class="sec-p">Nine questions are still open. Where possible, the options for decision are listed. Each links to the step it affects. Question numbers are kept from version 2.0.</p>
+    <p class="sec-p">Ten questions are still open. Where possible, the options for decision are listed. Each links to the step it affects. Question numbers are kept from version 2.0.</p>
     <ol class="qlist" id="qlist"></ol>
     <h3 class="sub-h">Settled in version 2.1</h3>
     <ol class="qlist" id="dlist"></ol>
@@ -526,8 +529,12 @@
       <dt>How often (tag)</dt><dd>A tag showing when a step really happens: continuously, once then as needed, each instalment, live, or on a regular schedule (such as quarterly). CMG steps and steps 15, 17 and 22 carry no tag. Step numbers show a typical order for one group, not a timeline.</dd>
       <dt>Instalment</dt><dd>One of several regular repayments.</dd>
       <dt>Interest rate ceiling</dt><dd>The highest interest rate a lender may charge a CMG, set by TAMISEMI.</dd>
+      <dt>Key disclosures</dt><dd>A short, simple summary given with every offer: loan amount, tenure, interest rate or fee, payment schedule, how to pay, what counts as a delay, when the loan is in default, the consequences of default, and loan utilisation restrictions.</dd>
       <dt>Lender</dt><dd>A bank or microfinance institution selected by TAMISEMI to lend PAMOJA funds to CMGs.</dd>
       <dt>LGA</dt><dd>Local Government Authority: the district or town council.</dd>
+      <dt>Loan contract</dt><dd>The written agreement between the group and the lender, with the loan terms and key disclosures. The group signs it after accepting the offer.</dd>
+      <dt>Loan utilisation restrictions</dt><dd>Rules on what the loan may and may not be used for.</dd>
+      <dt>Offer</dt><dd>The lender’s approval sent to the group: a loan contract with terms, and key disclosures.</dd>
       <dt>Outside</dt><dd>Working term for steps that are not part of the loan journey itself: pre-loan and post-loan.</dd>
       <dt>PAMOJA</dt><dd>The World Bank-supported project (P178813) that funds these loans.</dd>
       <dt>Post-loan</dt><dd>Outside steps after the loan journey: lenders passing repayments back to TAMISEMI; TAMISEMI’s quarterly payments to lenders, default settlements, LGA service fees and CMG incentives.</dd>
@@ -538,11 +545,12 @@
       <dt>Share-out</dt><dd>When the group divides its savings and profits among members at the end of the cycle.</dd>
       <dt>TAMISEMI</dt><dd>The President’s Office – Regional Administration and Local Government (also known as PO-RALG), which runs PAMOJA nationally.</dd>
       <dt>Written off</dt><dd>A loan status: a defaulted loan the lender removes from its active books.</dd>
+      <dt>Tenure</dt><dd>How long the loan runs, from payout to the final repayment.</dd>
       <dt>WEZESHA</dt><dd>The existing system LGAs use to register groups.</dd>
     </dl>
   </section>
 
-  <p class="foot"><b>Version 3.12 (draft for review), 27 September 2026.</b> New step 23 “Pass repayments back to TAMISEMI” (Lender, post-loan): the lender passes collected repayments, with interest, back to TAMISEMI and returns unused funds (money map flows 4 and 5). Open question Q17 now links to it. Old steps 23 to 26 are now 24 to 27, so there are 27 steps. The step also appears in the system map, the lender’s actor journey map and the walkthrough.<br><b>Version 3.11, 27 September 2026.</b> Changes from 3.10, from review comments: (1) new actor journey maps: one loop for each party (TAMISEMI, LGA, Lender, CMG) showing the steps it is responsible for and who else each step affects; the detail panel also shows this. (2) Step 11 “Form eligible cohorts” removed. Step 11 is now “Assign 1–2 TAMISEMI designated lenders to all eligible registered CMGs, who can then apply for loans”, with a new open question (Q16) on the eligibility criteria, such as age and savings. (3) Cohorts and pools are gone throughout: step 12 invitations are triggered by the lender assignment; step 13 advances are based on demand estimates; a CMG can apply to either of its 1 to 2 assigned lenders; the LGA service fee follows eligible CMGs assigned lenders; stage 4, the key rules, the money map, open questions and glossary are updated to match. (4) Zone headings are now “Pre-loan · Setting up” and “Post-loan · Settlement”. (5) The actor journey maps show no step numbers; step numbers stay in the main flow. (6) Step numbers are now described as a typical order for one group, not a timeline. Most steps have a ‘how often’ tag (none on CMG steps or steps 15, 17 and 22), shown in the flowchart, system map, actor journey maps and walkthrough panel, with a legend under the flowchart key. Steps 23 to 26 (TAMISEMI’s payments) are all quarterly; steps 11 and 12 are continuous. (8) The money map is redrawn as rings: CMGs at the centre, the LGA (30%) and lender (70%) around them, and TAMISEMI as the outer arc. It shows every fund flow, including two separate flows back to TAMISEMI (repayments collected with interest, flow 4; unused funds, flow 5) and both routes for CMG incentives: 8A “Incentives (direct)” and 8B “Incentives (via Lender)”. New open question Q17 on when and how repayments go back to TAMISEMI.<br><b>Version 3.10, 27 September 2026.</b> Step 21 “Reach out on delays” (LGA outreach at 15 days past due) removed, with its arrows, the outreach flow (9) on the money map, the outreach part of the Recovery rule, and settled question Q11. Steps 22 to 28 are now 21 to 27.<br><b>Version 3.9, 27 September 2026.</b> Outside zones renamed: “Programme set-up” is now “Pre-loan”, and “Programme settlement” is now “Post-loan”, in the map, flowchart, legend and glossary. Content unchanged.<br><b>Version 3.8, 27 September 2026.</b> Outside zones made more muted in the system map and the flowchart: neutral grey backgrounds, softer stakeholder colours, lighter text. Content unchanged.<br><b>Version 3.7, 27 September 2026.</b> New step 26 “Settle defaults with lenders”: TAMISEMI pays its risk share on defaulted loans. The LGA service fee and CMG incentives are now steps 27 and 28. No other changes.<br><b>Version 3.6, 27 September 2026.</b> Steps 13 and 14 swapped: “Invite applications” is now step 13 and “Release advances to lenders” is step 14. Stage 5 renamed to match. No other changes.<br><b>Version 3.5, 27 September 2026.</b> Step 14 “Invite applications” is now shown as triggered by the pool allocation (step 12), with TAMISEMI notified when invitations go out. No other changes.<br><b>Version 3.4, 27 September 2026.</b> Step 12 renamed “Allocate the CMG cohort pool across lenders designated to the council by TAMISEMI”, in both the system map and the flowchart. No other changes.<br><b>Version 3.3, 27 September 2026.</b> Step 12 renamed “Allocate the cohort pool among lenders”, making clear the pool is shared among the lenders TAMISEMI designated to the council. No other changes.<br><b>Version 3.2, 27 September 2026.</b> “Set the annual cycle” and “Agree the group’s rules” moved up to become steps 2 and 3, so the group sets itself up before submitting documents. Old steps 2, 3 and 5 are now 4, 5 and 6; stages 1 and 2 renamed to match. All other steps unchanged.<br><b>Version 3.1, 27 September 2026.</b> The two early outside zones are merged into one, “Programme set-up”. The one-page system map now runs in time order: steps go down each column in number order, and a new column starts whenever the next step sits in a row above, so the numbers never jump back. Step content and numbering are unchanged from 3.0.<br><b>Version 3.0, 27 September 2026.</b> Adds “inside / outside” boundaries (answers B1–B6): the loan journey runs from the group’s application (▶ IN, step 15) to leaving (◀ OUT, step 24); everything else is outside. Adds the one-page system map, stronger stakeholder colours, and a switch to hide outside steps. Steps reordered: shared status and reports now come before leaving, so steps 22–24 are renumbered; the lender’s invitation moved into stage 5.<br><b>Version 2.2, 27 September 2026.</b> Layout only: the detail panel now opens on the right on laptop and tablet screens, with the flowchart on the left. Content is unchanged from 2.1.<br><b>Version 2.1, 27 September 2026.</b> Changes from 2.0: answers to Q1, Q3, Q4, Q7, Q10, Q11, Q13 and Q15 applied; options added to the seven questions still open; three final loan statuses added; unused-advance return added to the money map.<br><b>Version 2.0, 27 September 2026.</b> A new flow built from the updated PAMOJA journey notes. It replaces the earlier CMG Loan Tracker beta flow (version 1), which is kept separately. Main changes from version 1: group size is now 10 to 50; registration goes through WEZESHA; TAMISEMI assigns 2 to 3 lenders per council; LGAs build eligible pools; advances, discounts, incentives and fees are added; repayment is by control number into one account per lender. “Lender” is used throughout for the bank or microfinance institution (FI).<br>Reference: <a href="https://projects.worldbank.org/en/projects-operations/project-detail/P178813" target="_blank" rel="noopener">World Bank project page, P178813</a>.</p>
+  <p class="foot"><b>Version 3.13 (draft for review), 28 September 2026.</b> The lender’s offer (step 15) now comes with a loan contract and simplified key disclosures: loan amount, tenure, interest rate or fee, payment schedule, how to pay, what counts as a delay, when the loan is in default, consequences of default, and loan utilisation restrictions. Accepting (step 16) means the group has understood the offer, including its terms and disclosures. New step 17 “Sign the loan contract with the lender”, before the loan is paid out. New open question Q18 on how long a group that defaults is not eligible for a new loan. Later steps move up by one, so there are 28 steps. Key rules and glossary updated.<br><b>Version 3.12, 27 September 2026.</b> New step 23 “Pass repayments back to TAMISEMI” (Lender, post-loan): the lender passes collected repayments, with interest, back to TAMISEMI and returns unused funds (money map flows 4 and 5). Open question Q17 now links to it. Old steps 23 to 26 are now 24 to 27, so there are 27 steps. The step also appears in the system map, the lender’s actor journey map and the walkthrough.<br><b>Version 3.11, 27 September 2026.</b> Changes from 3.10, from review comments: (1) new actor journey maps: one loop for each party (TAMISEMI, LGA, Lender, CMG) showing the steps it is responsible for and who else each step affects; the detail panel also shows this. (2) Step 11 “Form eligible cohorts” removed. Step 11 is now “Assign 1–2 TAMISEMI designated lenders to all eligible registered CMGs, who can then apply for loans”, with a new open question (Q16) on the eligibility criteria, such as age and savings. (3) Cohorts and pools are gone throughout: step 12 invitations are triggered by the lender assignment; step 13 advances are based on demand estimates; a CMG can apply to either of its 1 to 2 assigned lenders; the LGA service fee follows eligible CMGs assigned lenders; stage 4, the key rules, the money map, open questions and glossary are updated to match. (4) Zone headings are now “Pre-loan · Setting up” and “Post-loan · Settlement”. (5) The actor journey maps show no step numbers; step numbers stay in the main flow. (6) Step numbers are now described as a typical order for one group, not a timeline. Most steps have a ‘how often’ tag (none on CMG steps or steps 15, 17 and 22), shown in the flowchart, system map, actor journey maps and walkthrough panel, with a legend under the flowchart key. Steps 23 to 26 (TAMISEMI’s payments) are all quarterly; steps 11 and 12 are continuous. (8) The money map is redrawn as rings: CMGs at the centre, the LGA (30%) and lender (70%) around them, and TAMISEMI as the outer arc. It shows every fund flow, including two separate flows back to TAMISEMI (repayments collected with interest, flow 4; unused funds, flow 5) and both routes for CMG incentives: 8A “Incentives (direct)” and 8B “Incentives (via Lender)”. New open question Q17 on when and how repayments go back to TAMISEMI.<br><b>Version 3.10, 27 September 2026.</b> Step 21 “Reach out on delays” (LGA outreach at 15 days past due) removed, with its arrows, the outreach flow (9) on the money map, the outreach part of the Recovery rule, and settled question Q11. Steps 22 to 28 are now 21 to 27.<br><b>Version 3.9, 27 September 2026.</b> Outside zones renamed: “Programme set-up” is now “Pre-loan”, and “Programme settlement” is now “Post-loan”, in the map, flowchart, legend and glossary. Content unchanged.<br><b>Version 3.8, 27 September 2026.</b> Outside zones made more muted in the system map and the flowchart: neutral grey backgrounds, softer stakeholder colours, lighter text. Content unchanged.<br><b>Version 3.7, 27 September 2026.</b> New step 26 “Settle defaults with lenders”: TAMISEMI pays its risk share on defaulted loans. The LGA service fee and CMG incentives are now steps 27 and 28. No other changes.<br><b>Version 3.6, 27 September 2026.</b> Steps 13 and 14 swapped: “Invite applications” is now step 13 and “Release advances to lenders” is step 14. Stage 5 renamed to match. No other changes.<br><b>Version 3.5, 27 September 2026.</b> Step 14 “Invite applications” is now shown as triggered by the pool allocation (step 12), with TAMISEMI notified when invitations go out. No other changes.<br><b>Version 3.4, 27 September 2026.</b> Step 12 renamed “Allocate the CMG cohort pool across lenders designated to the council by TAMISEMI”, in both the system map and the flowchart. No other changes.<br><b>Version 3.3, 27 September 2026.</b> Step 12 renamed “Allocate the cohort pool among lenders”, making clear the pool is shared among the lenders TAMISEMI designated to the council. No other changes.<br><b>Version 3.2, 27 September 2026.</b> “Set the annual cycle” and “Agree the group’s rules” moved up to become steps 2 and 3, so the group sets itself up before submitting documents. Old steps 2, 3 and 5 are now 4, 5 and 6; stages 1 and 2 renamed to match. All other steps unchanged.<br><b>Version 3.1, 27 September 2026.</b> The two early outside zones are merged into one, “Programme set-up”. The one-page system map now runs in time order: steps go down each column in number order, and a new column starts whenever the next step sits in a row above, so the numbers never jump back. Step content and numbering are unchanged from 3.0.<br><b>Version 3.0, 27 September 2026.</b> Adds “inside / outside” boundaries (answers B1–B6): the loan journey runs from the group’s application (▶ IN, step 15) to leaving (◀ OUT, step 24); everything else is outside. Adds the one-page system map, stronger stakeholder colours, and a switch to hide outside steps. Steps reordered: shared status and reports now come before leaving, so steps 22–24 are renumbered; the lender’s invitation moved into stage 5.<br><b>Version 2.2, 27 September 2026.</b> Layout only: the detail panel now opens on the right on laptop and tablet screens, with the flowchart on the left. Content is unchanged from 2.1.<br><b>Version 2.1, 27 September 2026.</b> Changes from 2.0: answers to Q1, Q3, Q4, Q7, Q10, Q11, Q13 and Q15 applied; options added to the seven questions still open; three final loan statuses added; unused-advance return added to the money map.<br><b>Version 2.0, 27 September 2026.</b> A new flow built from the updated PAMOJA journey notes. It replaces the earlier CMG Loan Tracker beta flow (version 1), which is kept separately. Main changes from version 1: group size is now 10 to 50; registration goes through WEZESHA; TAMISEMI assigns 2 to 3 lenders per council; LGAs build eligible pools; advances, discounts, incentives and fees are added; repayment is by control number into one account per lender. “Lender” is used throughout for the bank or microfinance institution (FI).<br>Reference: <a href="https://projects.worldbank.org/en/projects-operations/project-detail/P178813" target="_blank" rel="noopener">World Bank project page, P178813</a>.</p>
 </main>
 
 <aside class="sheet" id="sheet" role="dialog" aria-labelledby="sh-title" aria-modal="false">
@@ -586,7 +594,8 @@
     Q14:{s:'T8',t:'How do CMG incentives reach the groups?',o:['Through the lender, into the group’s bank account.','Directly from TAMISEMI into the group’s bank account.']},
     Q15:{s:'T8',t:'What do CMG incentives reward?',r:'On-time repayment and early full repayment. (Loans never run across cycles.)'},
     Q16:{s:'L3',t:'Which eligibility criteria must a registered CMG meet before it is assigned lenders?',o:['Age of the group (for example, a minimum number of completed cycles).','Savings (for example, a minimum total saved).','Other criteria (please specify).']},
-    Q17:{s:'F6',t:'When and how does the lender pass the repayments it collects, with interest, back to TAMISEMI?',o:['As its CMG loans are repaid (for example, quarterly).','In one payment at the end of the CMG cycle.','On a fixed schedule set in the lending agreement.','Other (please specify).']}
+    Q17:{s:'F6',t:'When and how does the lender pass the repayments it collects, with interest, back to TAMISEMI?',o:['As its CMG loans are repaid (for example, quarterly).','In one payment at the end of the CMG cycle.','On a fixed schedule set in the lending agreement.','Other (please specify).']},
+    Q18:{s:'F2',t:'If a group defaults, for how long is it not eligible for a new PAMOJA loan?',o:['One cycle.','Two cycles.','Until the defaulted loan is recovered or settled.','Set by each lender.','Other (please specify).']}
   };
 
   // Steps in walkthrough order. d = detail shown in the side panel.
@@ -636,20 +645,25 @@
     C7:{lane:'chair',gate:'in',title:'Apply to an assigned lender',sum:'Documents and data the lender needs to appraise the loan.',status:'Applied (date)',
       d:{what:'This is the IN gateway: applying brings the group inside the PAMOJA loan journey. The CMG applies to one of its assigned lenders, with the documents and data the lender needs for its appraisal.',
          rules:['A CMG can apply only to the 1 to 2 lenders the LGA assigned to it.']}},
-    F2:{lane:'fi',title:'Appraise and decide',sum:'Approves, possibly for less, or rejects with a clear reason.',status:'Approved or Rejected (date)',
+    F2:{lane:'fi',title:'Appraise and decide',sum:'Approves (possibly for less) with an offer: a contract with terms and simple key disclosures. Or rejects with a clear reason.',status:'Approved or Rejected (date)',
       exc:'↩ Rejected, with a clear reason',
-      d:{what:'The lender appraises the application and decides.',
-         rules:['The appraisal must use the criteria the lender submitted to TAMISEMI at selection.','The interest rate must be at or below TAMISEMI’s ceiling.','The lender may approve a smaller amount than requested.','The repayment schedule must end before the CMG’s cycle end date.','The offer states whether the lender accepts instalments or one bullet payment.','Every rejection needs a clear reason.'],
-         out:['Approved: date, amount and repayment schedule recorded.','Rejected: date and reason recorded.']}},
-    C8:{lane:'chair',title:'Accept or refuse the offer',sum:'Decided at a meeting with a quorum. The group is free to refuse.',
+      d:{what:'The lender appraises the application and decides. An approval is sent as an offer: a loan contract with its terms, and simplified key disclosures the group can understand.',
+         disc:['Loan amount.','Tenure: how long the loan runs.','Interest rate or fixed fee.','Schedule of payments: how much is due and when.','How to pay: into the lender’s PAMOJA account, with a control number.','What counts as a delay.','When the loan is in default.','Consequences of default, for example the group may not be eligible for a new loan for a set period (Q18).','Loan utilisation restrictions: what the loan may and may not be used for.'],
+         rules:['The appraisal must use the criteria the lender submitted to TAMISEMI at selection.','The interest rate must be at or below TAMISEMI’s ceiling.','The lender may approve a smaller amount than requested.','The repayment schedule must end before the CMG’s cycle end date.','The offer states whether the lender accepts instalments or one bullet payment.','Every offer comes with a loan contract and simplified key disclosures.','Every rejection needs a clear reason.'],
+         out:['Approved: the offer (contract and key disclosures) goes to the group; date, amount and repayment schedule recorded.','Rejected: date and reason recorded.'],q:['Q18']}},
+    C8:{lane:'chair',title:'Accept or refuse the offer',sum:'Decided at a meeting with a quorum. Accepting means the group has understood the offer, including its terms and key disclosures.',
       exc:'↩ Refused: no loan this time',
-      d:{what:'The CMG discusses the offer at a meeting and decides whether to take it. The Chairperson records the decision.',
-         rules:['A loan can only be accepted at a meeting with a quorum.'],
-         out:['Accepted: the lender pays out the loan.','Refused: the loan does not go ahead.'],q:['Q8']}},
+      d:{what:'The CMG discusses the offer, including the contract terms and key disclosures, at a meeting and decides whether to take it. The Chairperson records the decision.',
+         rules:['A loan can only be accepted at a meeting with a quorum.','Accepting means the group has understood the offer, including its terms and key disclosures.'],
+         out:['Accepted: the group signs the loan contract with the lender.','Refused: the loan does not go ahead.'],q:['Q8']}},
+    C10:{lane:'chair',title:'Sign the loan contract with the lender',sum:'The group and the lender sign the contract. The loan is paid out only after this.',status:'Contract signed (date)',
+      d:{what:'After accepting, the group signs the loan contract with the lender. The signed contract includes the terms and key disclosures the group accepted.',
+         rules:['Signed by the group’s authorised signatories, as set in its constitution.','The lender pays out the loan only after the contract is signed.'],
+         paper:'The signed loan contract, with its key disclosures.'}},
     F3:{lane:'fi',title:'Disburse the loan',sum:'Paid into the CMG’s bank account, with the loan details recorded.',status:'Disbursed (date)',
       d:{what:'The lender pays the loan into the CMG’s bank account and records: the date paid, the amount, the interest rate or fixed fee, the repayment schedule, and whether instalments or a bullet payment will be accepted.',
          money:['Loan from the lender to the CMG’s bank account (flow 2).'],
-         rules:['Must happen within 15 working days of the advance reaching the lender.','The repayment schedule must end before the CMG’s cycle end date.'],
+         rules:['Paid only after the loan contract is signed.','Must happen within 15 working days of the advance reaching the lender.','The repayment schedule must end before the CMG’s cycle end date.'],
          q:['Q9']}},
     C9:{lane:'chair',title:'Repay with a control number',sum:'Into the lender’s single PAMOJA account, in instalments or one bullet payment.',
       d:{what:'The CMG pays into its lender’s PAMOJA repayment account, using a control number the lender issues.',
@@ -664,10 +678,10 @@
          out:['Repaid: the lender confirms “fully repaid” before the share-out. Status: Closed (fully repaid).','No loan: the lender rejected the application or the group refused the offer. The group stays inside until its cycle ends, then leaves.','Defaulted: the lender stays responsible for recovery, and the loss is shared with TAMISEMI by the agreed formula. The loan leaves only when it is recovered or written off, and TAMISEMI’s risk share has been paid.'],
          statuses:[['Closed','Fully repaid, confirmed by the lender before the share-out.','var(--ok)'],['Defaulted','Not repaid as agreed. The exact trigger is still open (Q12).','var(--bad)'],['Written off','A defaulted loan removed from the lender’s active books.','var(--bad)']],
          money:['Risk-sharing payment from TAMISEMI to the lender for defaulted loans (part of flow 6).'],
-         q:['Q12']}},
+         q:['Q12','Q18']}},
     SYS:{lane:'sys',span:true,title:'One live loan status for everyone',sum:'Lenders give LGAs and TAMISEMI direct visibility of every CMG loan.',
       d:{what:'Each lender gives the LGAs and TAMISEMI direct, live visibility of the status of every CMG loan.',
-         statuses:[['Applied','Date.','var(--lga)'],['Approved','Date, amount and repayment schedule.','var(--ok)'],['Rejected','Date and reason.','var(--bad)'],['Disbursed','Date.','var(--fi)'],['Repayment','Every instalment or bullet payment, on time or days past due.','var(--primary)'],['Closed','Fully repaid, confirmed by the lender.','var(--ok)'],['Defaulted','Not repaid as agreed.','var(--bad)'],['Written off','Removed from the lender’s active books.','var(--bad)']],
+         statuses:[['Applied','Date.','var(--lga)'],['Approved','Date, amount and repayment schedule.','var(--ok)'],['Rejected','Date and reason.','var(--bad)'],['Contract signed','Date.','var(--chair)'],['Disbursed','Date.','var(--fi)'],['Repayment','Every instalment or bullet payment, on time or days past due.','var(--primary)'],['Closed','Fully repaid, confirmed by the lender.','var(--ok)'],['Defaulted','Not repaid as agreed.','var(--bad)'],['Written off','Removed from the lender’s active books.','var(--bad)']],
          money:['Information only: loan status from the lender to the LGA and TAMISEMI (flow 10).']}},
     F5:{lane:'fi',title:'Send regular reports',sum:'Weekly, monthly and quarterly totals by region, LGA and ward.',
       d:{what:'The lender makes weekly, monthly and quarterly totals of loans issued and repayment status available to LGAs and TAMISEMI, online or as reports. Totals are broken down by region, LGA and ward.'}},
@@ -693,7 +707,7 @@
          rules:['Incentives reward on-time repayment.','Incentives reward early full repayment.'],
          money:['Incentives from TAMISEMI to CMGs: directly (flow 8A) or through the lender (flow 8B). The route is not yet agreed.'],q:['Q14']}}
   };
-  var ORDER=['C1','C3','C5','C2','L1','C4','C6','T1','T2','T3','L3','F1','T4','C7','F2','C8','F3','C9','F4','SYS','F5','OUT','F6','T6','T9','T7','T8'];
+  var ORDER=['C1','C3','C5','C2','L1','C4','C6','T1','T2','T3','L3','F1','T4','C7','F2','C8','C10','F3','C9','F4','SYS','F5','OUT','F6','T6','T9','T7','T8'];
 
   // Who is responsible for each step (its lane), and who else it affects. Shared-record steps go to the party that owns them.
   // How often each step really happens. Step numbers are a typical order for one group, not a timeline.
@@ -719,7 +733,7 @@
   var OWNER={}; ORDER.forEach(function(id){ OWNER[id]=N[id].lane; }); OWNER.SYS='fi'; OWNER.OUT='chair';
   var AFF={C1:[],C3:['fi'],C5:[],C2:['lga'],L1:['chair'],C4:['lga','fi'],C6:['lga'],
     T1:['fi'],T2:['fi'],T3:['lga','fi'],L3:['chair','fi'],F1:['chair','tam'],T4:['fi'],
-    C7:['fi'],F2:['chair'],C8:['fi'],F3:['chair'],C9:['fi'],F4:['chair','lga','tam'],SYS:['lga','tam'],F5:['lga','tam'],OUT:['fi','tam'],
+    C7:['fi'],F2:['chair'],C8:['fi'],C10:['fi'],F3:['chair'],C9:['fi'],F4:['chair','lga','tam'],SYS:['lga','tam'],F5:['lga','tam'],OUT:['fi','tam'],
     F6:['tam'],T6:['fi'],T9:['fi'],T7:['lga'],T8:['chair']};
 
   var ZONES={
@@ -741,7 +755,7 @@
     ['F1'],['T4'],
     {zone:'inside'},
     {n:6,t:'The group applies and the lender decides',p:'▶ IN: applying brings the group inside'},
-    ['C7'],['F2'],['C8'],
+    ['C7'],['F2'],['C8'],['C10'],
     {n:7,t:'The loan is paid out',p:'Into the group’s bank account'},
     ['F3'],
     {n:8,t:'Repayment and recovery',p:'Must finish before the cycle ends and before the share-out'},
@@ -765,7 +779,7 @@
     ['T4','F3','main','Advance','side'],
     ['F1','C7','main','Invitation'],['C7','F2','main','Application'],
     ['F2','C8','main','Offer'],['F2','C7','exc','Rejected, with reason'],
-    ['C8','F3','main','Accepted'],['C8','F1','exc','Refused'],
+    ['C8','C10','main','Accepted'],['C10','F3','main','Signed contract'],['C8','F1','exc','Refused'],
     ['F3','C9','main'],['C9','F4','main','Control number'],['F4','C9','loop','Next instalment'],
     ['F4','SYS','feed','Every payment'],['SYS','F5','feed'],['SYS','OUT','main'],
     ['OUT','F6','main','Collected repayments'],['F6','T6','main','Results data'],['T6','T9','main'],['T9','T7','main'],['T7','T8','main']
@@ -945,6 +959,7 @@
     h+='<h4>Responsible</h4><p>'+LANES[OWNER[id]].name+(n.lane==='sys'?' (shared step)':'')+'</p><h4>Who else this affects</h4>'+(window.__affHTML?window.__affHTML(id):'');
     if(d.statuses) h+='<h4>The statuses</h4><div class="statuses">'+d.statuses.map(function(s){ return '<div><b style="color:'+s[2]+'">'+s[0]+'</b><span>'+s[1]+'</span></div>'; }).join('')+'</div>';
     if(d.paper) h+='<h4>Paper evidence</h4><div class="paper">📄 '+d.paper+'</div>';
+    if(d.disc) h+='<h4>Key disclosures in the offer</h4>'+list(d.disc);
     if(d.rules) h+='<h4>Rules</h4>'+list(d.rules);
     if(d.out) h+='<h4>What can happen next</h4>'+list(d.out);
     if(d.money) h+='<h4>Money and data</h4><div class="money">'+list(d.money)+'</div>';
@@ -979,7 +994,7 @@
     var sm=document.getElementById('sysmap');
     var SHORT={C1:'Form the group',C2:'Submit documents',L1:'Register in WEZESHA',C3:'Set the cycle',C4:'Track record',C5:'Group rules',C6:'Log meetings',
       T1:'Select lenders',T2:'Sign contracts',T3:'Assign lenders to LGAs',L3:'Assign 1–2 lenders to eligible CMGs',T4:'Release advances',F1:'Invite to apply',
-      C7:'Apply to an assigned lender',F2:'Appraise, decide',C8:'Accept or refuse',F3:'Disburse',C9:'Repay',F4:'Record repayment',SYS:'Live loan status',F5:'Regular reports',OUT:'Leave the journey',
+      C7:'Apply to an assigned lender',F2:'Appraise, decide',C8:'Accept or refuse',C10:'Sign contract',F3:'Disburse',C9:'Repay',F4:'Record repayment',SYS:'Live loan status',F5:'Regular reports',OUT:'Leave the journey',
       F6:'Pass repayments back',T6:'Pay lenders',T9:'Settle defaults',T7:'Pay LGA fee',T8:'CMG incentives'};
     var rows=['chair','lga','fi','tam','sys'], ri={};
     rows.forEach(function(k,i){ ri[k]=i; });
