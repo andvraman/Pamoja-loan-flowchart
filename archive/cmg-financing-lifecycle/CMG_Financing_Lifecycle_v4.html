@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMG Financing Lifecycle</title>
+<style>
+  :root{
+    --p:#1f4e79; --c:#1f9e89; --e:#e39b2d; --m:#2e7d32; --ob:#6a3fa0; --enf:#8a2d2d;
+    --bg:#f7f9fb; --card:#fff; --line:#c9d1da; --soft:#e3e8ee; --ink:#1d2630; --ink2:#3b4652; --mute:#6b7682;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif}
+  .app{height:100vh;display:grid;grid-template-columns:1fr 300px;
+    grid-template-rows:auto auto 1fr auto;gap:10px 18px;padding:14px 22px 16px}
+  header{grid-column:1/3;display:flex;align-items:baseline;gap:14px}
+  header h1{font-size:21px;margin:0}
+  header span{font-size:12.5px;color:var(--mute)}
+  .rail{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  .rl{font-size:12px;font-weight:700;color:var(--ink2);min-width:128px;display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .chip{font:inherit;font-size:12.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:4px 11px;cursor:pointer;line-height:1.2}
+  .chip b{color:var(--mute);font-weight:600;margin-right:4px}
+  .chip:hover,.chip.on{border-color:var(--ink2);color:var(--ink)}
+  .chip.on{background:#eef2f6}
+  .rails-bottom{display:flex;flex-direction:column;gap:7px}
+  .stage{min-height:0;position:relative}
+  .stage svg{width:100%;height:100%;display:block}
+  aside{grid-column:2;grid-row:2/5;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;overflow:hidden;font-size:13px;color:var(--ink2);display:flex;flex-direction:column}
+  aside h2{font-size:16px;margin:0 0 4px;color:var(--ink)}
+  aside .sub{color:var(--mute);font-size:12px;margin-bottom:12px}
+  aside h4{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+  aside p{margin:0 0 6px;line-height:1.45}
+  aside .tags{display:flex;flex-wrap:wrap;gap:5px}
+  aside .tag{font-size:11.5px;border:1px solid var(--soft);border-radius:999px;padding:2px 8px;background:#fafbfc}
+  .who{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .who span{font-size:12px;display:flex;align-items:center;gap:5px}
+  .nest{border:1.5px solid var(--p);background:#e6edf5;border-radius:10px;padding:8px 10px 10px;font-size:12px;font-weight:700;color:var(--p)}
+  .nest .nest{border-color:var(--c);background:#e3f4f1;color:var(--c);margin-top:6px}
+  .nest .nest .nest{border-color:var(--e);background:#fcf1e1;color:#b8741a;padding:14px 10px}
+  .key{display:grid;grid-template-columns:44px 1fr;gap:7px 8px;align-items:center;font-size:12px}
+  .hint{margin-top:auto;font-size:11.5px;color:var(--mute)}
+  /* diagram states */
+  .step{cursor:pointer;transition:opacity .15s}
+  .step .card{fill:var(--card);stroke:var(--line);stroke-width:1.2}
+  .step:hover .card,.step.sel .card{stroke:var(--ink2);stroke-width:1.8}
+  .step.hl .card{stroke:var(--ink);stroke-width:2.2}
+  svg.focus .step:not(.hl){opacity:.22}
+  svg.focus .flow{opacity:.25}
+  .t{fill:var(--ink);font-size:15px;font-weight:700}
+  .f{fill:var(--ink2);font-size:12.5px}
+  .ct{fill:var(--mute);font-size:11px}
+  .numc{fill:#2f3a45}.numt{fill:#fff;font-size:13px;font-weight:700;text-anchor:middle}
+  .money{fill:#e8f4ea;stroke:var(--m)}
+  .moneyt{fill:var(--m);font-size:10px;font-weight:700;text-anchor:middle}
+  .proc{stroke:#5b6570;stroke-width:2;fill:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>CMG Financing Lifecycle</h1><span>PAMOJA Sub-Component 1.2 · v4 (rough cut) · click any step or label</span></header>
+
+  <div class="rail" id="railCom"><span class="rl">COM covers</span></div>
+
+  <div class="stage"><svg id="dg" viewBox="0 0 1080 470" preserveAspectRatio="xMidYMid meet"></svg></div>
+
+  <div class="rails-bottom">
+    <div class="rail" id="railCmg"><span class="rl"><i class="dot" style="background:var(--c)"></i>CMG must</span></div>
+    <div class="rail" id="railEnt"><span class="rl"><i class="dot" style="background:var(--e)"></i>Entrepreneur must</span></div>
+  </div>
+
+  <aside id="panel"></aside>
+</div>
+
+<script>
+const COL={P:'#1f4e79',C:'#1f9e89',E:'#e39b2d'};
+const NAME={P:'PO-RALG',C:'CMG',E:'Entrepreneur'};
+
+const STEPS=[
+ {n:1,x:20, y:10, t:['CMG selected'],owners:['P'],
+  what:'PO-RALG selects CMGs using the COM eligibility and prioritisation rules.'},
+ {n:2,x:290,y:10, t:['Deposit','Agreement'],tabs:['P','C'],doc:1,money:['PO-RALG','CMG'],mk:['◆','CMG obligations start'],
+  what:'PO-RALG and the CMG sign the Deposit Agreement; the capital injection is transferred.'},
+ {n:3,x:560,y:10, t:['Subproject','selected'],owners:['C'],
+  what:'The CMG selects a woman member’s eligible productive Subproject.'},
+ {n:4,x:830,y:10, t:['Microfinancing','Agreement'],tabs:['C','E'],doc:1,mk:['◆','Ent. obligations start'],
+  what:'CMG and entrepreneur sign: amount, currency, charges, repayment schedule, and the CMG’s remedies on default.'},
+ {n:5,x:830,y:300,t:['Lend · Monitor','· Report'],owners:['C','E'],money:['CMG','Entrepreneur'],mk:['◆','Both monitor & report'],
+  what:'The CMG disburses the loan; both track and report Subproject progress.'},
+ {n:6,x:560,y:300,t:['Repayment'],owners:['E'],money:['Entrepreneur','CMG'],mk:['⚖','CMG enforces if default'],
+  what:'The entrepreneur repays; the CMG re-lends repayments to new Subprojects.'},
+ {n:7,x:290,y:300,t:['Close-out &','refund'],owners:['C'],money:['CMG','PO-RALG · unused'],mk:['◆','CMG obligations end'],
+  what:'At Closing Date or wind-up, unused funds go back to PO-RALG, which redeploys them to a new CMG.'}
+];
+
+const ALL=[1,2,3,4,5,6,7];
+const RAILS={
+ railCom:[
+  ['a','Structure','Who is in charge of what','Roles, responsibilities and decision-making for selecting, monitoring and evaluating CMGs and their Subprojects.',ALL],
+  ['b','Entry','Which CMGs qualify and how they are chosen','Eligibility (incl. minimum institutional requirements), prioritisation, application and selection procedures.',[1]],
+  ['c','Money terms','Conditions attached to the capital injection','Single borrower limits, repayment schedules, charges.',[2,4]],
+  ['d','Money flow','How funds move, and the agreement for each transfer','Flow of funds PO-RALG → CMG; Deposit Agreement template; approval and signing protocol.',[2]],
+  ['e','Use of funds','Who and what CMGs may finance','Beneficiary and Subproject eligibility, negative list, social and environmental restrictions — on top of the CMG’s own rules.',[3]],
+  ['f','Accountability','How CMGs keep accounts and report','Financial management requirements, including regular reporting to DITs.',[5]],
+  ['g','Safeguards','CMGs’ environmental and social duties','Obligations under the M-ESCP and ancillary documents.',[3,5]]
+ ],
+ railCmg:[
+  ['','Lend','Only to women members, only for eligible Subprojects','On reasonable terms acceptable to PO-RALG.',[3,4,5]],
+  ['','Manage','Handle the funds honestly and well','Due diligence; Anti-Corruption Guidelines; add own resources if needed.',[2,3,4,5,6,7]],
+  ['','Monitor','Track members’ Subprojects','Policies and procedures to monitor and evaluate progress.',[5]],
+  ['','Account','Account for every shilling','Financial management system and financial statements for the Deposited Amount.',[5,7]],
+  ['','Open up','Records open, information on request','Allow inspection; provide information reasonably requested.',[2,3,4,5,6,7]],
+  ['','Enforce','Protect the funds under each agreement','Use its rights on default; never assign, amend or waive standard terms.',[6]],
+  ['','Return','Refund unused funds','Within 60 days of the Closing Date or a wind-up decision.',[7]]
+ ],
+ railEnt:[
+  ['','Deliver','Carry out the Subproject properly','Due diligence; Anti-Corruption Guidelines; add own resources if needed.',[5]],
+  ['','Monitor','Track own Subproject progress','Regular monitoring and evaluation.',[5]],
+  ['','Account','Keep accounts','Financial statements on CMG request.',[5]],
+  ['','Open up','Records open, information on request','Allow inspection by PO-RALG and the CMG.',[5,6]],
+  ['','Repay','Repay as agreed','Per the amount, charges and schedule in the Microfinancing Agreement.',[6]]
+ ]
+};
+const RAILNAME={railCom:'COM area',railCmg:'CMG obligation',railEnt:'Entrepreneur obligation'};
+
+/* ---------- build SVG ---------- */
+const svg=document.getElementById('dg');const NS='http://www.w3.org/2000/svg';
+let h=`<defs>
+ <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6570"/></marker>
+ <marker id="ahC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${COL.C}"/></marker>
+ <marker id="ahP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${COL.P}"/></marker></defs>`;
+h+=`<g class="flow">
+ <line class="proc" x1="240" y1="90" x2="288" y2="90" marker-end="url(#ah)"/>
+ <line class="proc" x1="510" y1="90" x2="558" y2="90" marker-end="url(#ah)"/>
+ <line class="proc" x1="780" y1="90" x2="828" y2="90" marker-end="url(#ah)"/>
+ <line class="proc" x1="940" y1="170" x2="940" y2="298" marker-end="url(#ah)"/>
+ <line class="proc" x1="830" y1="380" x2="782" y2="380" marker-end="url(#ah)"/>
+ <line class="proc" x1="560" y1="380" x2="512" y2="380" marker-end="url(#ah)"/>
+ <path d="M670 300V172" stroke="${COL.C}" stroke-width="2.2" stroke-dasharray="7 5" fill="none" marker-end="url(#ahC)"/>
+ <text x="680" y="228" font-size="12.5" font-weight="600" fill="${COL.C}">↻ CMG re-lends repayments</text>
+ <text x="680" y="245" class="f" font-size="12">new Subproject + new agreement</text>
+ <path d="M290 430H130V172" stroke="${COL.P}" stroke-width="2.2" stroke-dasharray="7 5" fill="none" marker-end="url(#ahP)"/>
+ <text x="20" y="455" font-size="12.5" font-weight="600" fill="${COL.P}">↻ PO-RALG redeploys refunds</text>
+</g>`;
+const doc=(x,y)=>`<g transform="translate(${x},${y})"><rect width="16" height="20" rx="2" fill="#fff" stroke="#2f3a45"/><path d="M4 6H12M4 10H12M4 14H10" stroke="#2f3a45"/></g>`;
+STEPS.forEach(s=>{
+  const {x,y}=s, w=220, tab=s.tabs?14:0;
+  let g=`<g class="step" data-n="${s.n}" tabindex="0"><rect class="card" x="${x}" y="${y}" width="${w}" height="160" rx="10"/>`;
+  if(s.tabs){
+    g+=`<path d="M${x+10} ${y}H${x+14}V${y+160}H${x+10}A10 10 0 0 1 ${x} ${y+150}V${y+10}A10 10 0 0 1 ${x+10} ${y}Z" fill="${COL[s.tabs[0]]}"/>`;
+    g+=`<path d="M${x+w-10} ${y}H${x+w-14}V${y+160}H${x+w-10}A10 10 0 0 0 ${x+w} ${y+150}V${y+10}A10 10 0 0 0 ${x+w-10} ${y}Z" fill="${COL[s.tabs[1]]}"/>`;
+  }
+  const cx=x+22+tab;
+  g+=`<circle class="numc" cx="${cx}" cy="${y+24}" r="13"/><text class="numt" x="${cx}" y="${y+29}">${s.n}</text>`;
+  s.t.forEach((l,i)=>g+=`<text class="t" x="${cx+22}" y="${y+30+i*24}">${l}</text>`);
+  if(s.doc) g+=doc(x+w-40,y+12);
+  (s.owners||[]).slice().reverse().forEach((o,i)=>g+=`<circle cx="${x+w-18-i*18}" cy="${y+22}" r="7" fill="${COL[o]}"/>`);
+  g+=`<line x1="${x+12+tab}" y1="${y+80}" x2="${x+w-12-tab}" y2="${y+80}" stroke="#e3e8ee"/>`;
+  let ry=y+104, lx=x+14+tab;
+  if(s.money){g+=`<rect class="money" x="${lx}" y="${ry-13}" width="36" height="18" rx="9"/><text class="moneyt" x="${lx+18}" y="${ry}">TZS</text><text class="f" x="${lx+44}" y="${ry}">${s.money[0]} → ${s.money[1]}</text>`;ry+=26;}
+  if(s.mk){g+=`<text x="${lx}" y="${ry}" font-size="${s.mk[0]=='⚖'?15:14}" fill="${s.mk[0]=='⚖'?'#8a2d2d':'#6a3fa0'}">${s.mk[0]}</text><text class="f" x="${lx+18}" y="${ry}">${s.mk[1]}</text>`;ry+=26;}
+  const tags=RAILS.railCom.filter(r=>r[4].includes(s.n)&&r[4].length<7).map(r=>r[0]);
+  if(tags.length) g+=`<text class="ct" x="${lx}" y="${y+148}">COM ${tags.join(' · ')}</text>`;
+  g+='</g>'; h+=g;
+});
+svg.innerHTML=h;
+
+/* ---------- rails ---------- */
+Object.entries(RAILS).forEach(([id,list])=>{
+  const el=document.getElementById(id);
+  list.forEach((r,i)=>{const b=document.createElement('button');b.className='chip';b.dataset.rail=id;b.dataset.i=i;
+    b.innerHTML=(r[0]?`<b>${r[0]}</b>`:'')+r[1];el.appendChild(b);});
+});
+
+/* ---------- panel ---------- */
+const panel=document.getElementById('panel');
+const who=arr=>`<div class="who">${arr.map(o=>`<span><i class="dot" style="background:${COL[o]}"></i>${NAME[o]}</span>`).join('')}</div>`;
+function legend(){
+  panel.innerHTML=`<h2>How to read this</h2><div class="sub">Seven steps, three layers of responsibility.</div>
+  <div class="nest">PO-RALG (sets the COM)<div class="nest">CMG<div class="nest">Woman entrepreneur</div></div></div>
+  <h4>Key</h4><div class="key">
+   <svg width="40" height="22"><rect x="1" y="1" width="38" height="20" rx="4" fill="#fff" stroke="#c9d1da"/><rect x="1" y="1" width="5" height="20" fill="${COL.P}"/><rect x="34" y="1" width="5" height="20" fill="${COL.C}"/></svg><span>Side tabs — two parties to an agreement</span>
+   <svg width="40" height="16"><circle cx="10" cy="8" r="6" fill="${COL.C}"/><circle cx="26" cy="8" r="6" fill="${COL.E}"/></svg><span>Badges — who carries out the step</span>
+   <svg width="40" height="22">${doc(12,1)}</svg><span>Written agreement signed</span>
+   <svg width="40" height="18"><rect x="1" y="1" width="36" height="16" rx="8" fill="#e8f4ea" stroke="#2e7d32"/><text x="19" y="13" font-size="9.5" font-weight="700" fill="#2e7d32" text-anchor="middle">TZS</text></svg><span>Money moves (from → to)</span>
+   <span style="color:#6a3fa0;font-size:15px;text-align:center">◆</span><span>Obligations start / apply / end</span>
+   <span style="color:#8a2d2d;font-size:15px;text-align:center">⚖</span><span>Enforcement</span>
+   <svg width="40" height="10"><path d="M2 5H34" stroke="${COL.C}" stroke-width="2" stroke-dasharray="5 4"/></svg><span>↻ Revolving funds</span>
+  </div><div class="hint">Click a step or a label to see what applies. Esc to reset.</div>`;
+}
+function showStep(s){
+  const parts=s.tabs||s.owners;
+  const pick=id=>RAILS[id].filter(r=>r[4].includes(s.n)&&!(id==='railCom'&&r[4].length===7)).map(r=>`<span class="tag">${r[0]?r[0]+' · ':''}${r[1]}</span>`).join('')||'<span class="tag">—</span>';
+  panel.innerHTML=`<h2>${s.n}. ${s.t.join(' ').replace('· ·','·')}</h2>${who(parts)}
+   <p>${s.what}</p>
+   ${s.money?`<h4>Money</h4><p>TZS: ${s.money[0]} → ${s.money[1]}</p>`:''}
+   <h4>COM areas</h4><div class="tags">${pick('railCom')}</div>
+   <h4>CMG obligations in play</h4><div class="tags">${pick('railCmg')}</div>
+   <h4>Entrepreneur obligations in play</h4><div class="tags">${pick('railEnt')}</div>
+   <div class="hint">COM a · Structure applies to every step.</div>`;
+}
+function showChip(id,r){
+  panel.innerHTML=`<h2>${r[0]?r[0]+'. ':''}${r[1]}</h2><div class="sub">${RAILNAME[id]}</div>
+   <p><b>${r[2]}</b></p><p>${r[3]}</p>
+   <h4>Applies at steps</h4><div class="tags">${r[4].map(n=>`<span class="tag">${n}</span>`).join('')}</div>`;
+}
+
+/* ---------- interaction ---------- */
+let pinned=null;
+const steps=[...svg.querySelectorAll('.step')];
+function clear(){svg.classList.remove('focus');steps.forEach(g=>g.classList.remove('hl','sel'));document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));}
+function apply(sel){
+  clear();
+  if(!sel){legend();return;}
+  if(sel.type==='step'){const s=STEPS[sel.n-1];steps[sel.n-1].classList.add('sel');showStep(s);}
+  else{const r=RAILS[sel.rail][sel.i];svg.classList.add('focus');r[4].forEach(n=>steps[n-1].classList.add('hl'));
+    document.querySelector(`.chip[data-rail="${sel.rail}"][data-i="${sel.i}"]`).classList.add('on');showChip(sel.rail,r);}
+}
+const same=(a,b)=>a&&b&&a.type===b.type&&a.n===b.n&&a.rail===b.rail&&a.i===b.i;
+function toggle(sel){pinned=same(pinned,sel)?null:sel;apply(pinned);}
+steps.forEach(g=>{const n=+g.dataset.n;
+  g.addEventListener('click',e=>{e.stopPropagation();toggle({type:'step',n});});
+  g.addEventListener('mouseenter',()=>{if(!pinned)apply({type:'step',n});});
+  g.addEventListener('mouseleave',()=>{if(!pinned)apply(null);});
+  g.addEventListener('keydown',e=>{if(e.key==='Enter')toggle({type:'step',n});});
+});
+document.querySelectorAll('.chip').forEach(c=>{const sel={type:'chip',rail:c.dataset.rail,i:+c.dataset.i};
+  c.addEventListener('click',e=>{e.stopPropagation();toggle(sel);});
+  c.addEventListener('mouseenter',()=>{if(!pinned)apply(sel);});
+  c.addEventListener('mouseleave',()=>{if(!pinned)apply(null);});
+});
+document.addEventListener('click',()=>{pinned=null;apply(null);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){pinned=null;apply(null);}});
+legend();
+</script>
+</body>
+</html>
