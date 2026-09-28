@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CMG Funding Nest</title>
+<meta name="description" content="Flow of funds, agreements and reporting for Sub-Component 1.2 (Mainland), quoted clause by clause from the Tanzania–IDA Financing Agreement.">
+<style>
+  :root{
+    --ground:#fbfaf7; --card:#ffffff; --card-2:#faf9f5;
+    --ink:#24211b; --muted:#6e685c; --faint:#99927f;
+    --line:#ebe6da; --line-strong:#dbd3c1;
+    --primary:#1f6446; --primary-deep:#134a32;
+    --money:#1f8560; --info:#9a9282; --repay:#c0561c;
+    --assoc:#4a58a0; --assoc-bg:#f1f2fb; --assoc-line:#c5cbee;
+    --recip:#2f6fa8; --recip-bg:#edf5fd; --recip-line:#bcd8f3;
+    --pit:#1d7d75;   --pit-bg:#eaf7f5;   --pit-line:#b5e2dc;
+    --dit:#39814b;   --dit-bg:#eef8ef;   --dit-line:#c0e3c6;
+    --cmg:#8f6b0c;   --cmg-bg:#fef8e8;   --cmg-line:#f0dba0;
+    --entre:#b24a2b; --entre-bg:#fdefe9; --entre-line:#f3c3b1;
+    --shadow:0 1px 2px rgba(30,25,10,.04),0 10px 28px -16px rgba(30,25,10,.18);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  :root{color-scheme:light}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 var(--sans)}
+  main{max-width:1180px;margin:0 auto;padding-block:24px 60px;padding-inline:20px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--primary)}
+  h1{font-family:var(--serif);font-size:clamp(24px,3.6vw,32px);line-height:1.12;margin:.2rem 0 .4rem;font-weight:600;text-wrap:balance}
+  .lede{max-width:980px;color:var(--muted);font-size:14px;margin:0 0 14px}
+  .lede b{color:var(--ink)}
+
+  .sheet{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(280px,1fr);gap:12px 18px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:16px;margin:0 0 12px}
+  .chart{margin:0}
+  .diagram{display:block;width:100%;height:auto;font-family:var(--sans)}
+  .sheet .legend{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;font-size:10px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin:0}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .legend svg{overflow:visible;flex:none}
+  .legend-note{flex-basis:100%;margin:0;font-size:10px;color:var(--muted)}
+  .note{max-width:760px;color:var(--muted);font-size:13.5px;margin:0 2px 8px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--faint);border-radius:10px;padding:10px 14px}
+  .note q{quotes:"“" "”" "‘" "’";color:var(--ink)}
+  .sheet .note.key{max-width:none;margin:0;font-size:10px;line-height:1.45;border-left-color:var(--money);background:var(--card-2)}
+  .note.key .alt{margin:0}
+  .note.key ol{list-style:none;margin:6px 0;padding:0;display:grid;gap:4px;font-size:10px}
+  .note.key li{position:relative;padding-left:28px}
+  .note.key li .badge{position:absolute;left:0;top:1px}
+  .badge.repay{border-color:var(--repay);color:var(--repay)}
+  .badge{flex:none;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--money);color:var(--money);font-size:10.5px;font-weight:800;background:var(--card)}
+
+  .sec{margin-top:44px}
+  .sec-h{font-family:var(--serif);font-size:23px;font-weight:600;margin:0 0 6px}
+  .sec-p{color:var(--muted);margin:0 0 16px;max-width:700px;font-size:14.5px}
+
+  .tblwrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+  .tbl{width:100%;min-width:820px;border-collapse:collapse;font-size:13.5px}
+  .tbl th{text-align:left;white-space:nowrap;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);background:var(--card-2);padding:9px 12px;border-bottom:1px solid var(--line)}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tbl tr:last-child td{border-bottom:0}
+  .tbl td.k{white-space:nowrap;font-weight:700}
+  .tbl td.cl{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tbl td.ns{color:#a2461f;font-weight:700;white-space:nowrap}
+  .tbl q{quotes:"“" "”" "‘" "’"}
+  .tbl .sub{display:block;margin-top:6px;color:var(--muted)}
+  .tag{display:inline-block;white-space:nowrap;font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;border:1.2px solid var(--ink);background:var(--card)}
+  .tag.tor{border-style:dashed;border-color:var(--faint);color:var(--muted);font-weight:600}
+
+  .gloss{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0}
+  .gloss dt,.gloss dd{margin:0;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .gloss dt{font-weight:700;background:var(--card-2)}
+  .gloss dd .cl{color:var(--muted)}
+  .gloss dt:last-of-type,.gloss dd:last-of-type{border-bottom:0}
+
+  .foot{margin-top:44px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px}
+  .foot ul{margin:6px 0 0;padding-left:18px}
+
+  @media (max-width:860px){
+    .sheet{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .gloss{grid-template-columns:1fr}
+    .gloss dt{border-bottom:0;padding-bottom:2px}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Financing Agreement · Schedule 2 · Sub-Component 1.2 (Mainland)</div>
+  <h1>The CMG funding nest</h1>
+  <p class="lede">Every solid arrow, tag and term on this page is taken from the Financing Agreement between the United Republic of Tanzania and the International Development Association, with the clause cited. Where the agreement does not say something, this page says <b>not stated</b>. The numbered dashed arrows are the one exception: they apply the usual lending meaning of “amortization schedule”, and are explained in the key beside the chart.</p>
+
+  <section class="sheet" aria-label="Chart, key and legend">
+    <figure class="chart">
+      <svg class="diagram" viewBox="0 0 668 392" role="img" aria-label="Five concentric semicircles separated by white space, around a full circle. From outermost to innermost: Association; Recipient (Ministry of Finance); PO-RALG-PIT; DIT; CMG. The CMG entrepreneur is the full circle at the centre. Solid green arrows: the Credit from the Association to the Recipient; the Credit repaid from the Recipient to the Association; the Deposited Amount from the Recipient, through PO-RALG, to a CMG; Microfinancing from a CMG to an entrepreneur; refunds of unused amounts from a CMG to the Recipient. Dashed arrows 1 to 3: repayment under an amortization schedule; arrow 1, in orange, from the entrepreneur to the CMG; arrows 2 and 3, in green, from the CMG to either the DIT or the Recipient through PO-RALG, as alternatives. Dotted arrows: Project Reports from the Recipient to the Association, and regular reporting from CMGs to DITs. Tags on each boundary show the Financing Agreement, the Deposit Agreement and the Microfinancing Agreement; the two middle boundaries have no agreement named.">
+        <defs>
+          <marker id="mMoney" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--money)"/></marker>
+          <marker id="mRepay" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--repay)"/></marker>
+          <marker id="mInfo" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--info)"/></marker>
+          <path id="arcA" d="M35,332 A299,299 0 0 1 633,332"/>
+          <path id="arcR" d="M89,332 A245,245 0 0 1 579,332"/>
+          <path id="arcP" d="M143,332 A191,191 0 0 1 525,332"/>
+          <path id="arcD" d="M197,332 A137,137 0 0 1 471,332"/>
+          <path id="arcC" d="M251,332 A83,83 0 0 1 417,332"/>
+        </defs>
+
+        <!-- semicircular bands: 42px wide, 12px of white space between each -->
+        <path d="M10,332 A324,324 0 0 1 658,332 L616,332 A282,282 0 0 0 52,332 Z" fill="var(--assoc-bg)" stroke="var(--assoc-line)" stroke-width="1.1" stroke-linejoin="round"/>
+        <path d="M64,332 A270,270 0 0 1 604,332 L562,332 A228,228 0 0 0 106,332 Z" fill="var(--recip-bg)" stroke="var(--recip-line)" stroke-width="1.1" stroke-linejoin="round"/>
+        <path d="M118,332 A216,216 0 0 1 550,332 L508,332 A174,174 0 0 0 160,332 Z" fill="var(--pit-bg)" stroke="var(--pit-line)" stroke-width="1.1" stroke-linejoin="round"/>
+        <path d="M172,332 A162,162 0 0 1 496,332 L454,332 A120,120 0 0 0 214,332 Z" fill="var(--dit-bg)" stroke="var(--dit-line)" stroke-width="1.1" stroke-linejoin="round"/>
+        <path d="M226,332 A108,108 0 0 1 442,332 L400,332 A66,66 0 0 0 268,332 Z" fill="var(--cmg-bg)" stroke="var(--cmg-line)" stroke-width="1.1" stroke-linejoin="round"/>
+        <circle cx="334" cy="332" r="54" fill="var(--entre-bg)" stroke="var(--entre-line)" stroke-width="1.1"/>
+
+        <!-- names -->
+        <g font-size="11" font-weight="800" letter-spacing=".05em" text-anchor="middle">
+          <text fill="var(--assoc)"><textPath href="#arcA" startOffset="50%">ASSOCIATION</textPath></text>
+          <text fill="var(--recip)" font-size="10.5" letter-spacing=".03em"><textPath href="#arcR" startOffset="50%">RECIPIENT · MINISTRY OF FINANCE</textPath></text>
+          <text fill="var(--pit)"><textPath href="#arcP" startOffset="50%">PO-RALG-PIT</textPath></text>
+          <text fill="var(--dit)"><textPath href="#arcD" startOffset="50%">DIT</textPath></text>
+          <text fill="var(--cmg)"><textPath href="#arcC" startOffset="50%">CMG</textPath></text>
+        </g>
+
+        <!-- left: money going in -->
+        <g font-size="10.5" text-anchor="middle" fill="var(--ink)">
+          <text><textPath href="#arcA" startOffset="20%">Credit</textPath></text>
+          <text><textPath href="#arcR" startOffset="20%">Deposited Amount, through PO-RALG</textPath></text>
+          <text font-size="9.5"><textPath href="#arcC" startOffset="15%">Microfinancing</textPath></text>
+        </g>
+        <g stroke="var(--money)" stroke-width="2" stroke-linecap="round" marker-end="url(#mMoney)">
+          <line x1="101.0" y1="162.7" x2="120.4" y2="176.8"/>
+          <line x1="144.7" y1="194.5" x2="251.5" y2="272.0"/>
+          <line x1="269.8" y1="299.3" x2="291.2" y2="310.2"/>
+        </g>
+
+        <!-- right: money going back, where the payee is named -->
+        <g font-size="10.5" text-anchor="middle" fill="var(--ink)">
+          <text><textPath href="#arcA" startOffset="75%">Credit repaid</textPath></text>
+          <text><textPath href="#arcR" startOffset="75%">Refund of unused amounts</textPath></text>
+        </g>
+        <g stroke="var(--money)" stroke-width="2" stroke-linecap="round" marker-end="url(#mMoney)">
+          <line x1="520.7" y1="145.3" x2="537.6" y2="128.4"/>
+          <line x1="406.1" y1="259.9" x2="499.5" y2="166.5"/>
+        </g>
+
+        <!-- right: repayment under an amortization schedule (usual meaning; payee not stated) -->
+        <line x1="375.6" y1="308.0" x2="396.4" y2="296.0" stroke="var(--repay)" stroke-width="1.8" stroke-dasharray="5 4" stroke-linecap="round" marker-end="url(#mRepay)"/>
+        <g stroke="var(--money)" stroke-width="1.8" stroke-dasharray="5 4" stroke-linecap="round" marker-end="url(#mMoney)">
+          <line x1="381.9" y1="241.9" x2="393.2" y2="220.7"/>
+          <line x1="396.8" y1="251.6" x2="478.1" y2="147.6"/>
+        </g>
+        <g font-size="9.5" font-weight="800" text-anchor="middle" fill="var(--money)">
+          <circle cx="410.2" cy="288.0" r="8" fill="var(--card)" stroke="var(--repay)" stroke-width="1.4"/><text x="410.2" y="291.3" fill="var(--repay)">1</text>
+          <circle cx="401.1" cy="205.7" r="8" fill="var(--card)" stroke="var(--money)" stroke-width="1.4"/><text x="401.1" y="209.0">2</text>
+          <circle cx="454.1" cy="178.3" r="8" fill="var(--card)" stroke="var(--money)" stroke-width="1.4"/><text x="454.1" y="181.6">3</text>
+        </g>
+
+        <!-- right: reporting -->
+        <g font-size="10" text-anchor="middle" fill="var(--muted)">
+          <text><textPath href="#arcA" startOffset="87.8%">Project Reports</textPath></text>
+          <text><textPath href="#arcD" startOffset="87.8%">Regular reporting</textPath></text>
+        </g>
+        <g stroke="var(--info)" stroke-width="1.7" stroke-dasharray="1 4" stroke-linecap="round" marker-end="url(#mInfo)">
+          <line x1="578.8" y1="233.1" x2="601.0" y2="224.1"/>
+          <line x1="428.6" y1="293.8" x2="450.8" y2="284.8"/>
+        </g>
+
+        <!-- tags on each boundary -->
+        <g text-anchor="middle" font-size="9">
+          <g font-weight="700" fill="var(--ink)">
+            <rect x="290" y="43" width="88" height="26" rx="13" fill="var(--card)" stroke="var(--ink)" stroke-width="1.1"/>
+            <text x="334" y="54">Financing</text><text x="334" y="65">Agreement</text>
+          </g>
+          <g font-weight="600" fill="var(--muted)">
+            <rect x="286" y="97" width="96" height="26" rx="13" fill="var(--card)" stroke="var(--faint)" stroke-width="1.1" stroke-dasharray="3 3"/>
+            <text x="334" y="108">No agreement named</text><text x="334" y="119">ToR: I.A.1(d)</text>
+          </g>
+          <g font-weight="600" fill="var(--muted)">
+            <rect x="286" y="152" width="96" height="26" rx="13" fill="var(--card)" stroke="var(--faint)" stroke-width="1.1" stroke-dasharray="3 3"/>
+            <text x="334" y="163">No agreement named</text><text x="334" y="174">ToR: I.A.1(e)</text>
+          </g>
+          <g font-weight="700" fill="var(--ink)">
+            <rect x="294" y="205" width="80" height="26" rx="13" fill="var(--card)" stroke="var(--ink)" stroke-width="1.1"/>
+            <text x="334" y="216">Deposit</text><text x="334" y="227">Agreement</text>
+          </g>
+          <g font-weight="700" fill="var(--ink)">
+            <rect x="292" y="259" width="84" height="26" rx="13" fill="var(--card)" stroke="var(--ink)" stroke-width="1.1"/>
+            <text x="334" y="270">Microfinancing</text><text x="334" y="281">Agreement</text>
+          </g>
+        </g>
+
+        <!-- centre -->
+        <g text-anchor="middle">
+          <text x="334" y="318" font-size="10.5" font-weight="800" letter-spacing=".05em" fill="var(--entre)">CMG</text>
+          <text x="334" y="332" font-size="10.5" font-weight="800" letter-spacing=".05em" fill="var(--entre)">ENTREPRENEUR</text>
+          <text x="334" y="350" font-size="9.5" fill="var(--muted)">Implements the</text>
+          <text x="334" y="362" font-size="9.5" fill="var(--muted)">Subproject</text>
+        </g>
+      </svg>
+    </figure>
+
+    <aside class="note key" aria-label="Key to the dashed arrows">
+      <b>Dashed arrows 1–3: repayment under an amortization schedule.</b> These apply the usual lending meaning of “amortization schedule”: the borrower repays the lender it entered into the schedule with. The agreement itself does not state who is repaid.
+      <ol>
+        <li><span class="badge repay">1</span><b>Entrepreneur → CMG.</b> The Microfinance Agreement specifies the <q>amortization schedule of the Microfinancing resources lent to the beneficiary entrepreneur</q> (I.D.6(a)). The CMG enters into that agreement (I.D.6) and provides the Microfinancing (Appendix).</li>
+        <li><span class="badge">2</span><b>CMG → DIT.</b> The Deposit Agreement specifies the <q>amortization schedule of the resources to be on-lent to the beneficiary CMG</q> (I.D.4(a)). Under I.D.4, the DIT enters into the Deposit Agreement with the CMG. The Deposit Agreement tag on the chart follows I.D.4.</li>
+        <li><span class="badge">3</span><b>CMG → Recipient, through PO-RALG.</b> The same schedule, read with the Appendix, which says the Deposit Agreement is <q>entered into by the Recipient, through PO-RALG, and a CMG</q> and the Deposited Amount is <q>provided by the Recipient, through PO-RALG</q>.</li>
+      </ol>
+      <p class="alt"><b>2 and 3 are alternatives. Which one applies is to be specified in the COM.</b> The COM must set out <q>the terms and conditions (i.e. single borrower limits, repayment schedules, charges, etc.) for the Deposited Amounts to be provided as capital injection to the CMGs</q> (I.D.1(c)) and <q>the proposed arrangement for the flow of funds from the Recipient to the CMGs, including the template of the Deposit Agreement</q> (I.D.1(d)).</p>
+    </aside>
+
+    <div class="legend">
+      <span><svg width="28" height="10"><line x1="2" y1="5" x2="26" y2="5" stroke="var(--money)" stroke-width="2"/></svg>Money: payer and payee both named</span>
+      <span><svg width="28" height="10"><line x1="2" y1="5" x2="26" y2="5" stroke="var(--repay)" stroke-width="1.8" stroke-dasharray="5 4"/></svg>Repayment under an amortization schedule: entrepreneur to CMG (key 1)</span>
+      <span><svg width="28" height="10"><line x1="2" y1="5" x2="26" y2="5" stroke="var(--money)" stroke-width="1.8" stroke-dasharray="5 4"/></svg>Repayment under an amortization schedule: CMG to DIT or to Recipient, alternatives (key 2, 3)</span>
+      <span><svg width="28" height="10"><line x1="2" y1="5" x2="26" y2="5" stroke="var(--info)" stroke-width="1.7" stroke-dasharray="1 4" stroke-linecap="round"/></svg>Reporting named in the agreement</span>
+      <span><svg width="32" height="14"><rect x="1" y="1" width="30" height="12" rx="6" fill="var(--card)" stroke="var(--ink)" stroke-width="1.1"/></svg>Agreement named in the Financing Agreement</span>
+      <span><svg width="32" height="14"><rect x="1" y="1" width="30" height="12" rx="6" fill="var(--card)" stroke="var(--faint)" stroke-width="1.1" stroke-dasharray="3 3"/></svg>No agreement named; set up under terms of reference (ToR)</span>
+      <p class="legend-note">An arrow that crosses a band does not mean the money passes through that layer; the agreement names only the payer and the payee. Amounts declared “immediately due and payable” are not drawn, because the agreement does not say who receives them.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Money where the payer and payee are both named</h2>
+    <p class="sec-p">These are the green arrows on the chart.</p>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>Flow</th><th>From → To</th><th>Wording in the agreement</th><th>Clause</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Credit</td><td>Association → Recipient</td><td><q>The Association agrees to extend to the Recipient a credit … in an amount equivalent to one hundred million United States Dollars (USD 100,000,000) (variously, “Credit” and “Financing”)</q></td><td class="cl">Article II</td></tr>
+          <tr><td class="k">Credit repaid</td><td>Recipient → Association</td><td><q>The principal amount of the Credit shall be repaid in accordance with the repayment schedule set forth in Schedule 3 to this Agreement.</q><span class="sub">Schedule 3: 1.25% <q>On each January 1st and July 1st: commencing July 1st, 2034 to and including January 1st, 2074</q></span></td><td class="cl">2.05; Sch. 3</td></tr>
+          <tr><td class="k">Deposited Amount</td><td>Recipient, through PO-RALG → CMG</td><td><q>each subordinated financing (to be) provided by the Recipient, through PO-RALG, to a CMG for purposes of injecting new capital thereto</q><span class="sub">I.D.4(a): <q>the resources to be on-lent to the beneficiary CMG (the “Deposited Amount”)</q></span><span class="sub">Allocation: <q>Deposited Amounts to Community Microfinance Groups for the financing of Subprojects under Sub-Component 1.2</q>: USD 24,000,000, 100%.</span><span class="sub">No withdrawal <q>Under Category (3) until and unless, the Recipient has adopted the COM, an ESMF and a Labor Management Plan covering the activities under Sub-Component 1.2.</q></span></td><td class="cl">Appendix; I.D.4(a); Sch. 2 III.A; III.B.1(c)</td></tr>
+          <tr><td class="k">Microfinancing</td><td>CMG → entrepreneur</td><td><q>each financing (to be) provided by a CMG to one or more member woman/en entrepreneur(s) for the implementation of an eligible investment Subproject</q><span class="sub">I.D.6: <q>out of the capital injection secured under a Deposited Amount</q></span><span class="sub">I.D.6(a): <q>the Microfinancing resources lent to the beneficiary entrepreneur</q></span></td><td class="cl">Appendix; I.D.6; I.D.6(a)</td></tr>
+          <tr><td class="k">Refund of unused amounts</td><td>CMG → Recipient</td><td><q>promptly refund to the Recipient and/or cancel out of the Deposited Amount: (A) within 60 days of the Closing Date, any amounts out of the Deposited Amount uncommitted and/or unutilized for the financing of Subproject by the said Closing Date; and (b) in the event of a CMG’s unwinding decision, within 60 days of such decision, any amounts out of the Deposited Amount uncommitted and/or unutilized for the financing of Subproject as of the date of such decision.</q><span class="sub"><q>The Closing Date is February 28, 2029.</q> (III.B.2)</span></td><td class="cl">I.D.4(c)(vii); III.B.2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Payments back where the recipient is not stated</h2>
+    <p class="sec-p">The Deposited Amount is <q>on-lent to the beneficiary CMG</q> (I.D.4(a)) and the Microfinancing is <q>lent to the beneficiary entrepreneur</q> (I.D.6(a)). Both are in the table above. The agreement also requires an amortization schedule for each, and gives a right to declare each <q>immediately due and payable</q>. It does not say to whom payments under the schedule, or amounts declared due, are made. The schedules are drawn on the chart as dashed arrows 1–3 (see key). Amounts declared due are not drawn.</p>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>Item</th><th>Wording in the agreement</th><th>Paid to</th><th>Clause</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Deposited Amount: amortization schedule</td><td>The Deposit Agreement shall specify <q>The amount, currency of denomination, charges (if any) and amortization schedule of the resources to be on-lent to the beneficiary CMG (the “Deposited Amount”)</q><span class="sub">The COM shall set forth <q>the terms and conditions (i.e. single borrower limits, repayment schedules, charges, etc.) for the Deposited Amounts to be provided as capital injection to the CMGs</q></span></td><td class="ns">Not stated<span class="sub">Chart: dashed 2 (DIT) or 3 (Recipient, through PO-RALG). To be specified in the COM.</span></td><td class="cl">I.D.4(a); I.D.1(c)</td></tr>
+          <tr><td class="k">Deposited Amount: declared due</td><td><q>The right of the Recipient to suspend or terminate the right of the CMG to use the proceeds of the Deposited Amount, or declare the Deposited Amount immediately due and payable, whether in whole or in part, upon the CMG’s failure to perform any of its obligations under the Deposit Agreement</q></td><td class="ns">Not stated</td><td class="cl">I.D.4(b)</td></tr>
+          <tr><td class="k">Microfinancing: amortization schedule</td><td>The Microfinance Agreement shall specify <q>The amount, currency of denomination, charges (if any) and amortization schedule of the Microfinancing resources lent to the beneficiary entrepreneur.</q></td><td class="ns">Not stated<span class="sub">Chart: dashed 1 (CMG), usual meaning of the term.</span></td><td class="cl">I.D.6(a)</td></tr>
+          <tr><td class="k">Microfinancing: declared due</td><td><q>The right of the CMG to suspend or terminate the right of the entrepreneur to use the proceeds of the Microfinancing, or declare the Microfinancing immediately due and payable, whether in whole or in part, upon the entrepreneur’s failure to perform any of its obligations under the Microfinancing Agreement.</q></td><td class="ns">Not stated</td><td class="cl">I.D.6(b)</td></tr>
+          <tr><td class="k">Commitment charge</td><td><q>The Maximum Commitment Charge Rate is one-half of one percent (1/2 of 1%) per annum on the Unwithdrawn Financing Balance.</q></td><td class="ns">Not stated in the pasted text</td><td class="cl">Article II</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Agreements, and who enters into them</h2>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>Document</th><th>Parties, in the agreement's words</th><th>Terms acceptable to</th><th>Clause</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag">Financing Agreement</span></td><td><q>AGREEMENT dated as of the Signature Date between the UNITED RPUBLIC OF TANZANIA (“Recipient”) and INTERNATIONAL DEVELOPMENT ASSOCIATION (“Association”).</q><span class="sub"><q>The Recipient’s Representative is Recipient’s Minister of Finance.</q> (5.01). Each signature block reads <q>Authorized Representative</q>.</span></td><td class="cl">—</td><td class="cl">Preamble; 5.01</td></tr>
+          <tr><td><span class="tag tor">Terms of reference</span></td><td>No agreement named. The Recipient shall <q>Establish within PO-RALG … a Project implementation team (variously the “President’s Office – Regional and Local Government-Project Implementation Team” or the “PO-RALG-PIT”), headed by a Project Coordinator</q></td><td><q>terms of reference acceptable to the Association</q></td><td class="cl">I.A.1(d)</td></tr>
+          <tr><td><span class="tag tor">Terms of reference</span></td><td>No agreement named. The Recipient shall <q>Cause the each Selected Council/District in Mainland to establish … a District-Level Implementation Team (“DIT”), headed by the respective District Executive Director</q></td><td><q>terms of reference acceptable to the Association</q></td><td class="cl">I.A.1(e)</td></tr>
+          <tr><td><span class="tag">Deposit Agreement</span></td><td>I.D.4: <q>the Recipient (through PO-RALG) shall cause the DIT of the Selected Council/District in which the CMG is located to enter into a written agreement (the “Deposit Agreement”) with the beneficiary CMG</q><span class="sub">Appendix: <q>entered into by the Recipient, through PO-RALG, and a CMG</q></span><span class="sub">I.D.5: <q>The Recipient shall exercise its rights under each Deposit Agreement … Except as the Association shall otherwise agree, the Recipient shall not assign any Deposit Agreement or amend, abrogate or waive any of its standard provisions</q></span></td><td><q>acceptable to the Association, as set forth in the COM</q></td><td class="cl">I.D.4; I.D.5; Appendix</td></tr>
+          <tr><td><span class="tag">Microfinancing Agreement</span></td><td><q>the CMG shall be required to enter into a written agreement with the selected entrepreneur (the “Microfinancing Agreement”)</q><span class="sub">I.D.7: <q>Except as the Association may otherwise agree in writing, the CMG shall not assign any Microfinancing Agreement, or amend, abrogate or waive any of its standard provisions set forth in the COM and/or in this Agreement.</q></span></td><td><q>acceptable to the Recipient and the Association</q></td><td class="cl">I.D.6; I.D.7</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Reporting and information named in the agreement</h2>
+    <p class="sec-p">The two dotted arrows on the chart are the first and third rows.</p>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>From → To</th><th>Wording in the agreement</th><th>Clause</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Recipient → Association</td><td><q>The Recipient shall furnish to the Association each Project Report not later than forty-five (45) days after the end of each calendar semester, covering the calendar semester.</q></td><td class="cl">Sch. 2, II</td></tr>
+          <tr><td class="k">Recipient → Association</td><td>Mainland Annual Work Plan and Budget: <q>by no later than March 31 of each year</q></td><td class="cl">I.F</td></tr>
+          <tr><td class="k">CMG → DIT</td><td>The COM shall set forth <q>the CMGs’ financial management requirements including regular reporting to DITs</q></td><td class="cl">I.D.1(f)</td></tr>
+          <tr><td class="k">CMG → Recipient and Association</td><td><q>prepare and furnish to the Recipient and the Association all such information as the Recipient or the Association shall reasonably request relating to the foregoing</q><span class="sub"><q>enable the Recipient and the Association to inspect its operation and any relevant records and documents in connection with the Deposited Amount</q></span></td><td class="cl">I.D.4(c)(vi), (v)</td></tr>
+          <tr><td class="k">Entrepreneur → Recipient and Association</td><td><q>prepare and furnish to the Recipient and the Association all such information as the Recipient or the Association shall reasonably request relating to the foregoing</q><span class="sub"><q>enable the Recipient, the Association and the CMG to inspect the Subproject, its operation, and any relevant records and documents in connection with the Subproject and the Microfinancing</q></span></td><td class="cl">I.D.6(c)</td></tr>
+          <tr><td class="k">DIT, PO-RALG-PIT and others</td><td>The M-PIM shall set forth <q>reporting lines and accountabilities for the PSC, the PTC, the MoCD-PIT, the PO-RALG-PIT and the DITs</q>. The lines themselves are not stated in the agreement.</td><td class="cl">I.C.1(a)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Who's who, in the agreement's words</h2>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>Layer</th><th>Wording in the agreement</th><th>Clause</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Association</td><td><q>INTERNATIONAL DEVELOPMENT ASSOCIATION (“Association”)</q></td><td class="cl">Preamble</td></tr>
+          <tr><td class="k">Recipient</td><td><q>UNITED RPUBLIC OF TANZANIA (“Recipient”)</q>. <q>The Recipient’s Representative is Recipient’s Minister of Finance.</q> The Recipient's address is the Ministry of Finance, Dodoma.</td><td class="cl">Preamble; 5.01; 5.02</td></tr>
+          <tr><td class="k">PO-RALG-PIT</td><td><q>responsible for the day-to-day implementation of the Recipient’s Respective Parts of the Project corresponding to PO-RALG as per the M-PIM and the Annual Work Plans and Budgets</q></td><td class="cl">I.A.1(d)</td></tr>
+          <tr><td class="k">DIT</td><td><q>each of the teams to be established by the respective LGA of a Selected Council/District</q>. <q>responsible to assist the PO-RALG-PIT and the MoCD-PIT with the day-to-day implementation of the Recipient Project Activities … including the establishment of evaluation committees for the identification of beneficiary CMGs to be provided capital injections, and the monitoring and evaluation of CMGs’ compliance the Community Operations Manual, the ESSs, the M-ESCP and ancillary documents thereunder</q></td><td class="cl">Appendix; I.A.1(e)</td></tr>
+          <tr><td class="k">CMG</td><td><q>community-based groups registered as microfinance service providers under Recipient’s Microfinance Act, 2018 (Act No. 10 of November 21st, 2018) applicable to Mainland</q></td><td class="cl">Appendix</td></tr>
+          <tr><td class="k">Entrepreneur</td><td><q>member woman/en entrepreneur(s)</q> (definition of Microfinancing). A Subproject is <q>a productive investment to be implemented by [a] woman/en entrepreneur(s) which shall be/have been appraised and selected by a CMG or a PFI</q></td><td class="cl">Appendix</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Defined terms</h2>
+    <p class="sec-p">Quoted from the Appendix.</p>
+    <dl class="gloss">
+      <dt>Community Operations Manual (COM)</dt><dd><q>the Recipient’s operations manual to be developed and adopted pursuant to Section I.D.1 of Schedule 2 to this Agreement, for purpose of implementing Sub-Component 1.2 of the Project in Mainland.</q></dd>
+      <dt>Deposit Agreement</dt><dd><q>the on-lending agreement (to be) entered into by the Recipient, through PO-RALG, and a CMG, pursuant to Section I.E.4 of Schedule 2 to this Agreement, as well as the provisions of the COM, for the further on-lending to [a] member woman/en entrepreneur(s) for the implementation of eligible investment Subprojects.</q></dd>
+      <dt>Deposited Amount</dt><dd><q>each subordinated financing (to be) provided by the Recipient, through PO-RALG, to a CMG for purposes of injecting new capital thereto, pursuant to Section I.D.4 of Schedule 2 to this Agreement, as well as the provisions of Community Operations Manual.</q> “Subordinated” is not defined in the agreement.</dd>
+      <dt>Microfinancing</dt><dd><q>each financing (to be) provided by a CMG to one or more member woman/en entrepreneur(s) for the implementation of an eligible investment Subproject pursuant to Section I.D.6 of Schedule 2 to this Agreement, as well as the provisions of Community Operations Manual.</q></dd>
+      <dt>Microfinance Agreement</dt><dd><q>the financing agreement (to be) entered into by a CMG with one or more member woman/en entrepreneur(s) pursuant to Section I.D.6 of Schedule 2 to this Agreement, as well as the provisions of the COM, for the provision of a Microfinancing.</q></dd>
+      <dt>Subproject</dt><dd><q>a productive investment to be implemented by [a] woman/en entrepreneur(s) which shall be/have been appraised and selected by a CMG or a PFI for financing under a Microfinancing or PFI Loan, as the case may be, pursuant to the protocols and criteria set forth in the COM and/or the PFI-OM</q></dd>
+      <dt>LGA</dt><dd><q>a Recipient’s local government authority established and operating (as the case may be) under either: (a) the Recipient’s Local Government (District Authorities) Act No 7 of 1982, as amended; or (b) the Recipient’s Local Government (Urban Authorities) Act. No. 8 of 1982, as amended.</q></dd>
+      <dt>Closing Date</dt><dd><q>The Closing Date is February 28, 2029.</q> <span class="cl">(Sch. 2, III.B.2)</span></dd>
+    </dl>
+  </section>
+
+  <section class="sec" id="glossary">
+    <h2 class="sec-h">Glossary of acronyms</h2>
+    <p class="sec-p">Expansions as written in the agreement.</p>
+    <dl class="gloss">
+      <dt>CMG</dt><dd>Community Microfinance Group</dd>
+      <dt>COM</dt><dd>Community Operations Manual</dd>
+      <dt>DIT</dt><dd>District-Level Implementation Team</dd>
+      <dt>ESMF</dt><dd>Not expanded in the agreement. Appendix: “each of the environmental and social frameworks to be prepared and adopted by the Recipient and the Project Implementing Entity”</dd>
+      <dt>ESSs</dt><dd>Environmental and Social Standards</dd>
+      <dt>IDA</dt><dd>International Development Association (“Association”)</dd>
+      <dt>LGA</dt><dd>Local government authority</dd>
+      <dt>M-ESCP</dt><dd>Mainland’s Environmental and Social Commitment Plan</dd>
+      <dt>M-PIM</dt><dd>Mainland Project Implementation Manual</dd>
+      <dt>MoCD-PIT</dt><dd>Ministry of Community Development-Project Implementation Team</dd>
+      <dt>MoCDGWSG</dt><dd>Ministry of Community Development, Gender, Women and Special Groups</dd>
+      <dt>PFI</dt><dd>Participating Financial Institution</dd>
+      <dt>PIT</dt><dd>Project implementation team</dd>
+      <dt>PO-RALG</dt><dd>“President’s Office – Regional and Local Government” (Schedule 1, 4.1) and “President’s Office – Regional Administration and Local Government” (Appendix). The agreement uses both.</dd>
+      <dt>PSC</dt><dd>Project Steering Committee</dd>
+      <dt>PTC</dt><dd>“Project Technical Committee for Mainland (“M-PTC”)” in I.A.1; written “PTC” in I.C.1(a)</dd>
+      <dt>ToR</dt><dd>Terms of reference. This abbreviation is used on this page only; the agreement writes the phrase in full.</dd>
+    </dl>
+  </section>
+
+  <div class="foot">
+    Source: Financing Agreement between the United Republic of Tanzania and the International Development Association, as pasted. Only the Mainland CMG route under Sub-Component 1.2 is shown. The General Conditions and the COM were not provided, so anything they contain is not reflected here. Drafting points noticed in the text:
+    <ul>
+      <li>The Appendix definition of “Deposit Agreement” refers to “Section I.E.4”, the PFI section. The Deposit Agreement clause is I.D.4.</li>
+      <li>I.D.6 uses both “Microfinancing Agreement” and “Microfinance Agreement”. The Appendix defines “Microfinance Agreement”.</li>
+      <li>PO-RALG is expanded two different ways (see glossary).</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>
