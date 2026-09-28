@@ -1,13 +1,57 @@
-"""Builds PAMOJA_Financial_Model_v0.2.xlsx (simple fund-flow model).
-Run: python3 model/build_model.py   (needs openpyxl)
-All numbers in blue on yellow are inputs. Everything else is a formula."""
+"""Builds PAMOJA_Financial_Model_v0.3.xlsx (simple fund-flow model).
+Run: python3 model/build_model.py [config.json]   (needs openpyxl)
+All numbers in blue on yellow are inputs. Everything else is a formula.
+
+config.json (optional) overrides the defaults below. It is the same file the
+'PAMOJA Model Inputs' GUI (an Artifact page) saves. Shape:
+  {"inputs": {"fund": 24000000, "ratio": 0.5, ...},
+   "districts": [{"name": "District A", "cmgs": 2500, "savings": 4000, "loan_ask": 2500}, ...]}
+Any key left out keeps its default. See DEFAULT_INPUTS / DEFAULT_DISTRICTS below for every key.
+"""
+import json
+import sys
 from openpyxl import Workbook
+from openpyxl.chart import BarChart, Reference
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter as col
 
-VERSION = "v0.2"
+VERSION = "v0.3"
 OUT = f"model/PAMOJA_Financial_Model_{VERSION}.xlsx"
 MONTHS = 24          # year 1 (lending) + year 2 (loans made late in year 1 finish)
+
+# ---------------------------------------------------------------- Config (GUI feeds this in)
+DEFAULT_INPUTS = {
+    "fund": 24_000_000, "linc": 2_000_000, "cinc": 2_000_000,
+    "ratio": 0.5, "rate": 0.18, "maxterm": 12, "term": 6, "def": 0.05,
+    "lastm": 12, "relend": 0.0,
+    "sdef": 0.30, "stam": 0.10, "sreg": 0.05, "slga": 0.05,
+}
+DEFAULT_DISTRICTS = [
+    {"name": "District A", "cmgs": 2500, "savings": 4000, "loan_ask": 2500},
+    {"name": "District B", "cmgs": 1800, "savings": 3000, "loan_ask": 2000},
+    {"name": "District C", "cmgs": 3200, "savings": 5000, "loan_ask": 3000},
+    {"name": "District D", "cmgs": 1500, "savings": 3500, "loan_ask": 1500},
+    {"name": "District E", "cmgs": 2000, "savings": 4500, "loan_ask": 2500},
+]
+
+
+def load_config(path):
+    cfg_inputs, cfg_districts = dict(DEFAULT_INPUTS), list(DEFAULT_DISTRICTS)
+    if path:
+        with open(path) as fh:
+            raw = json.load(fh)
+        cfg_inputs.update({k: v for k, v in raw.get("inputs", {}).items() if k in DEFAULT_INPUTS})
+        rows = raw.get("districts")
+        if rows:
+            cfg_districts = [{"name": r.get("name", ""), "cmgs": r.get("cmgs"),
+                               "savings": r.get("savings"), "loan_ask": r.get("loan_ask")}
+                              for r in rows if r.get("name")]
+    return cfg_inputs, cfg_districts
+
+
+CFG_PATH = sys.argv[1] if len(sys.argv) > 1 else None
+CFG, CFG_DISTRICTS = load_config(CFG_PATH)
+
 wb = Workbook()
 
 INPUT = PatternFill("solid", fgColor="FFF2CC")
@@ -94,6 +138,8 @@ QUESTIONS = [
      "Sets how fast money can go out each month.", "v0.2"),
     (10, "Are defaulted loans written off at maturity, or chased into the next year (recoveries)?",
      "Recoveries would add money back to the corpus later.", "v0.2"),
+    (11, "Who should be able to edit the 'PAMOJA Model Inputs' GUI, and does each district need its own editor?",
+     "The GUI page is currently shared only with its owner; wider access needs a deliberate share decision.", "v0.3"),
 ]
 
 # ---------------------------------------------------------------- Read me
@@ -122,6 +168,12 @@ lines = [
     "- Repayments can be lent out again (re-lending %, set to 0% to switch off).",
     "- Monthly sheet runs 24 months so loans made late in year 1 can finish in year 2.",
     "- Year-end snapshot: cash back in the fund vs money still out on loan at month 12.",
+    "",
+    "CHANGES IN v0.3",
+    "- All independent inputs (Inputs + Districts) can now come from a config.json file,",
+    "  built by the 'PAMOJA Model Inputs' GUI page instead of typed into Excel.",
+    "  Run: python3 model/build_model.py config.json",
+    "- Fund flow now has a bar chart: money not lent, principal repaid, interest collected.",
     "",
     "SIMPLE LOGIC",
     "- Lending corpus = Total fund - Lender incentives - CMG incentives.",
@@ -156,30 +208,30 @@ title(ip, "Inputs", "Yellow cells are inputs. Dummy values - replace with agreed
 header(ip, 4, ["Item", "Value", "Unit", "Note"])
 I = table(ip, 5, [
     (None, "FUND", None, None, None, None),
-    ("fund", "Total PAMOJA fund", 24_000_000, USD, "USD", "From TAMISEMI"),
-    ("linc", "Lender incentives (set aside)", 2_000_000, USD, "USD", "Not lent out"),
-    ("cinc", "CMG incentives (set aside)", 2_000_000, USD, "USD", "Not lent out"),
+    ("fund", "Total PAMOJA fund", CFG["fund"], USD, "USD", "From TAMISEMI"),
+    ("linc", "Lender incentives (set aside)", CFG["linc"], USD, "USD", "Not lent out"),
+    ("cinc", "CMG incentives (set aside)", CFG["cinc"], USD, "USD", "Not lent out"),
     ("corpus", "Lending corpus", lambda a: f"=B{a['fund']}-B{a['linc']}-B{a['cinc']}", USD, "USD",
      "Money available to lend"),
     (None, "LENDING RULES", None, None, None, None),
-    ("ratio", "Maximum Loan:Savings ratio", 0.5, "0.00", "x", "Loan must not exceed this x CMG savings"),
-    ("rate", "Interest rate (flat, per year)", 0.18, PCT, "%", "Placeholder; must be at or below TAMISEMI ceiling"),
-    ("maxterm", "Maximum loan tenure", 12, "0", "months", "Policy limit"),
-    ("term", "Loan term used in the model", 6, "0", "months", "Must be 1 to the maximum tenure"),
+    ("ratio", "Maximum Loan:Savings ratio", CFG["ratio"], "0.00", "x", "Loan must not exceed this x CMG savings"),
+    ("rate", "Interest rate (flat, per year)", CFG["rate"], PCT, "%", "Placeholder; must be at or below TAMISEMI ceiling"),
+    ("maxterm", "Maximum loan tenure", CFG["maxterm"], "0", "months", "Policy limit"),
+    ("term", "Loan term used in the model", CFG["term"], "0", "months", "Must be 1 to the maximum tenure"),
     ("termok", "Check: term within maximum",
      lambda a: f'=IF(AND(B{a["term"]}>=1,B{a["term"]}<=B{a["maxterm"]}),"OK","ERROR: term above maximum tenure")',
      "@", "", ""),
-    ("def", "Portfolio default rate (budget)", 0.05, PCT, "%", "% of principal lent that is not repaid"),
+    ("def", "Portfolio default rate (budget)", CFG["def"], PCT, "%", "% of principal lent that is not repaid"),
     (None, "LENDING TIMING (across the cycle)", None, None, None, None),
-    ("lastm", "Last month lenders can make new loans", 12, "0", "month", "1 to 12. Spread of new loans is set on 'Monthly cycle'"),
-    ("relend", "% of principal repaid that is lent out again", 0.0, PCT, "%", "0% = no re-lending (see question 4)"),
+    ("lastm", "Last month lenders can make new loans", CFG["lastm"], "0", "month", "1 to 12. Spread of new loans is set on 'Monthly cycle'"),
+    ("relend", "% of principal repaid that is lent out again", CFG["relend"], PCT, "%", "0% = no re-lending (see question 4)"),
     ("cashm", "Latest month to lend if all cash must be back by month 12",
      lambda a: f"=MAX(0,12-B{a['term']})", "0", "month", "0 means only at the very start of the year"),
     (None, "SPLIT OF INTEREST COLLECTED", None, None, None, None),
-    ("sdef", "Default budget (loss reserve)", 0.30, PCT, "%", "Returned to fund to cover defaults"),
-    ("stam", "TAMISEMI share", 0.10, PCT, "%", "Placeholder"),
-    ("sreg", "Region share", 0.05, PCT, "%", "Placeholder"),
-    ("slga", "LGA share", 0.05, PCT, "%", "Placeholder"),
+    ("sdef", "Default budget (loss reserve)", CFG["sdef"], PCT, "%", "Returned to fund to cover defaults"),
+    ("stam", "TAMISEMI share", CFG["stam"], PCT, "%", "Placeholder"),
+    ("sreg", "Region share", CFG["sreg"], PCT, "%", "Placeholder"),
+    ("slga", "LGA share", CFG["slga"], PCT, "%", "Placeholder"),
     ("slen", "Lender margin (remainder)", lambda a: f"=1-SUM(B{a['sdef']}:B{a['slga']})", PCT, "%",
      "What is left for the lender"),
     ("splitok", "Check: split adds to 100% or less",
@@ -206,13 +258,12 @@ header(ds, 4, ["District (LGA)", "Number of CMGs", "Average savings per CMG (USD
                "Loan per CMG (smaller of the two)", "Loan:Savings ratio used",
                "Demand (USD)", "Allocation (USD)", "Share of corpus"])
 ds.row_dimensions[4].height = 45
-sample = [("District A", 2500, 4000, 2500), ("District B", 1800, 3000, 2000),
-          ("District C", 3200, 5000, 3000), ("District D", 1500, 3500, 1500),
-          ("District E", 2000, 4500, 2500)]
 FIRST, LAST = 5, 24
 T = LAST + 1
 for r in range(FIRST, LAST + 1):
-    data = sample[r - FIRST] if r - FIRST < len(sample) else (None, None, None, None)
+    i = r - FIRST
+    row = CFG_DISTRICTS[i] if i < len(CFG_DISTRICTS) else None
+    data = (row["name"], row["cmgs"], row["savings"], row["loan_ask"]) if row else (None, None, None, None)
     ds.cell(row=r, column=1, value=data[0]).fill = INPUT
     for c, v, f in ((2, data[1], NUM), (3, data[2], USD), (4, data[3], USD)):
         inp(ds.cell(row=r, column=c, value=v), f)
@@ -398,6 +449,32 @@ for k in ("end", "res", "loans"):
     ff[f"A{F[k]}"].font = ff[f"B{F[k]}"].font = BOLD
 for Lc, w in zip("ABCD", (44, 18, 24, 48)):
     ff.column_dimensions[Lc].width = w
+
+# Chart source: pulls the 3 lines the chart shows into one contiguous range,
+# so the chart survives if the rows above ever move. Rows 10, 15, 16 today:
+# money not lent, principal repaid, interest collected.
+CH = {"unused": "Money not lent (returned to TAMISEMI)", "rep": "Principal repaid",
+      "int": "Interest collected"}
+ch_row = F["res"] + 3
+ff.cell(row=ch_row - 1, column=6, value="Chart data (auto - do not edit)").font = Font(italic=True, color="8A978C")
+for i, (k, lab) in enumerate(CH.items()):
+    r = ch_row + i
+    ff.cell(row=r, column=6, value=lab)
+    c = ff.cell(row=r, column=7, value=f"=B{F[k]}")
+    c.number_format = USD
+chart = BarChart()
+chart.type, chart.title, chart.y_axis.title = "col", "Year 1: money not lent, repaid, and interest earned", "USD"
+chart.y_axis.numFmt = USD
+chart.x_axis.delete = False
+chart.style = 10
+data = Reference(ff, min_col=7, min_row=ch_row, max_row=ch_row + len(CH) - 1)
+cats = Reference(ff, min_col=6, min_row=ch_row, max_row=ch_row + len(CH) - 1)
+chart.add_data(data, titles_from_data=False)
+chart.set_categories(cats)
+chart.series[0].tx = None
+chart.legend = None
+chart.width, chart.height = 16, 9
+ff.add_chart(chart, f"A{ch_row + len(CH) + 2}")
 
 # ---------------------------------------------------------------- Open questions sheet
 oq = wb.create_sheet("Open questions")

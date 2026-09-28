@@ -1,0 +1,382 @@
+<title>PAMOJA Model Inputs</title>
+<style>
+:root{
+  --ground:#eef1ea; --card:#ffffff; --card-2:#f5f7f1;
+  --ink:#17241d; --muted:#5b6b60; --faint:#8a978c;
+  --line:#dbe0d5; --line-strong:#c6cdbe;
+  --primary:#1c5a3f; --primary-deep:#0f3d29; --primary-soft:#dcebe1;
+  --accent:#cc6408; --ok:#2f7d4f; --bad:#b23b2e; --warn:#a8730a;
+  --shadow:0 1px 2px rgba(20,40,28,.06),0 8px 24px -12px rgba(20,40,28,.22);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0d1411; --card:#15201a; --card-2:#111a15;
+    --ink:#eaf0e8; --muted:#9db0a4; --faint:#6f8175;
+    --line:#243029; --line-strong:#31413a;
+    --primary:#57b485; --primary-deep:#3d9067; --primary-soft:#173226;
+    --accent:#f39a45; --ok:#4bbd7a; --bad:#e0705f; --warn:#e0b060;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0d1411; --card:#15201a; --card-2:#111a15;
+  --ink:#eaf0e8; --muted:#9db0a4; --faint:#6f8175;
+  --line:#243029; --line-strong:#31413a;
+  --primary:#57b485; --primary-deep:#3d9067; --primary-soft:#173226;
+  --accent:#f39a45; --ok:#4bbd7a; --bad:#e0705f; --warn:#e0b060;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:14px/1.5 var(--sans);padding-inline:16px}
+main{max-width:1180px;margin:0 auto;padding-block:24px 64px}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4vw,32px);margin:.2rem 0 .3rem;text-wrap:balance}
+.lede{color:var(--muted);max-width:640px;margin:0 0 18px;font-size:14.5px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0 24px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+.tile b{display:block;font-family:var(--serif);font-size:20px;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile span{font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+.tile.warn b{color:var(--warn)} .tile.bad b{color:var(--bad)} .tile.ok b{color:var(--ok)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);margin-bottom:18px}
+.card h2{font-family:var(--serif);font-size:16px;margin:0 0 4px;font-weight:600}
+.card p.hint{color:var(--faint);font-size:12.5px;margin:0 0 12px}
+.group-label{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.group-label:first-of-type{margin-top:0}
+.row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.row label{flex:1;font-size:13px;color:var(--ink)}
+.row .u{font-size:11px;color:var(--faint);width:42px;text-align:right;flex-shrink:0}
+input[type=number],input[type=text]{
+  width:118px;font:inherit;font-variant-numeric:tabular-nums;background:var(--card-2);
+  color:var(--ink);border:1px solid var(--line-strong);border-radius:8px;padding:6px 8px;text-align:right;
+}
+input[type=text]{width:150px;text-align:left}
+input:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--faint);
+   padding:4px 6px;border-bottom:1px solid var(--line-strong);font-weight:600}
+td{padding:4px 6px;border-bottom:1px solid var(--line)}
+td input{width:100%;min-width:70px}
+td.calc{color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+.rowbtns{display:flex;gap:8px;margin-top:10px}
+button{font:inherit;font-size:13px;font-weight:600;border-radius:9px;border:1px solid var(--line-strong);
+  background:var(--card-2);color:var(--ink);padding:7px 13px;cursor:pointer}
+button:hover{border-color:var(--primary)}
+button.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+button.danger{color:var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+.bars{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.bar-row{display:grid;grid-template-columns:110px 1fr 74px;align-items:center;gap:8px;font-size:12.5px}
+.bar-track{background:var(--card-2);border-radius:6px;height:14px;overflow:hidden;border:1px solid var(--line)}
+.bar-fill{height:100%;background:var(--primary);border-radius:6px 0 0 6px;transition:width .2s}
+.bar-val{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.savebar{
+  position:sticky;bottom:0;padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));
+  margin-top:8px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  background:color-mix(in srgb,var(--ground) 92%,transparent);backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);
+}
+.status{font-size:12.5px;color:var(--faint);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex-shrink:0}
+.dot.ok{background:var(--ok)} .dot.busy{background:var(--warn)} .dot.err{background:var(--bad)}
+.note{font-size:12px;color:var(--faint);margin-top:10px}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--primary-soft);color:var(--primary-deep)}
+</style>
+
+<main>
+  <div class="eyebrow">PAMOJA · fund model inputs</div>
+  <h1>PAMOJA Model Inputs</h1>
+  <p class="lede">Every independent number behind the Excel model, in one place. Change a value, watch the
+    preview update, and it saves here so the model can be rebuilt from these figures instead of typed into a
+    spreadsheet. <span class="badge">Draft — all figures are placeholders</span></p>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Fund and lending rules</h2>
+        <p class="hint">Independent inputs from the Excel &ldquo;Inputs&rdquo; sheet.</p>
+        <div class="group-label">Fund ($)</div>
+        <div class="row"><label for="fund">Total PAMOJA fund</label><span class="u">USD</span><input id="fund" type="number" step="100000" min="0"></div>
+        <div class="row"><label for="linc">Lender incentives (set aside)</label><span class="u">USD</span><input id="linc" type="number" step="100000" min="0"></div>
+        <div class="row"><label for="cinc">CMG incentives (set aside)</label><span class="u">USD</span><input id="cinc" type="number" step="100000" min="0"></div>
+
+        <div class="group-label">Lending rules</div>
+        <div class="row"><label for="ratio">Maximum Loan:Savings ratio</label><span class="u">x</span><input id="ratio" type="number" step="0.05" min="0"></div>
+        <div class="row"><label for="rate">Interest rate (flat, per year)</label><span class="u">%</span><input id="rate" type="number" step="1" min="0"></div>
+        <div class="row"><label for="maxterm">Maximum loan tenure</label><span class="u">months</span><input id="maxterm" type="number" step="1" min="1" max="60"></div>
+        <div class="row"><label for="term">Loan term used in the model</label><span class="u">months</span><input id="term" type="number" step="1" min="1" max="60"></div>
+        <div class="row"><label for="def">Portfolio default rate (budget)</label><span class="u">%</span><input id="def" type="number" step="0.5" min="0"></div>
+
+        <div class="group-label">Lending timing across the cycle</div>
+        <div class="row"><label for="lastm">Last month lenders can make new loans</label><span class="u">month</span><input id="lastm" type="number" step="1" min="1" max="12"></div>
+        <div class="row"><label for="relend">% of repaid principal lent out again</label><span class="u">%</span><input id="relend" type="number" step="5" min="0" max="100"></div>
+
+        <div class="group-label">Split of interest collected</div>
+        <div class="row"><label for="sdef">Default budget (loss reserve)</label><span class="u">%</span><input id="sdef" type="number" step="1" min="0"></div>
+        <div class="row"><label for="stam">TAMISEMI share</label><span class="u">%</span><input id="stam" type="number" step="1" min="0"></div>
+        <div class="row"><label for="sreg">Region share</label><span class="u">%</span><input id="sreg" type="number" step="1" min="0"></div>
+        <div class="row"><label for="slga">LGA share</label><span class="u">%</span><input id="slga" type="number" step="1" min="0"></div>
+        <div class="row"><label>Lender margin (remainder)</label><span class="u">%</span><b id="slen" style="width:118px;text-align:right;font-variant-numeric:tabular-nums"></b></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Districts (LGAs)</h2>
+        <p class="hint">Up to 20 rows. Loan cap and allocation are calculated, not entered.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>District</th><th>CMGs</th><th>Savings/CMG</th><th>Loan asked</th><th>Loan/CMG</th><th>Allocation</th><th></th></tr></thead>
+            <tbody id="districtRows"></tbody>
+          </table>
+        </div>
+        <div class="rowbtns">
+          <button id="addRow">+ Add district</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Preview: allocation by district</h2>
+        <p class="hint">Same scale-down logic as the &ldquo;Districts&rdquo; sheet: every district is cut by the
+          same % if total demand exceeds the corpus.</p>
+        <div class="bars" id="bars"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="savebar">
+    <button class="primary" id="saveBtn">Save</button>
+    <button id="copyBtn">Copy config as text</button>
+    <span class="status"><span class="dot" id="statusDot"></span><span id="statusText">Checking connection…</span></span>
+  </div>
+  <p class="note" id="fallbackNote" hidden>Not connected to a saved copy in this view — your edits stay only in
+    this browser. Use &ldquo;Copy config as text&rdquo; and paste it back to Claude to rebuild the workbook.</p>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var INPUT_KEYS = ["fund","linc","cinc","ratio","rate","maxterm","term","def","lastm","relend","sdef","stam","sreg","slga"];
+  var PCT_KEYS = {ratio:false, rate:true, def:true, relend:true, sdef:true, stam:true, sreg:true, slga:true};
+  var DEFAULT_INPUTS = {fund:24000000, linc:2000000, cinc:2000000, ratio:0.5, rate:0.18, maxterm:12, term:6,
+    def:0.05, lastm:12, relend:0.0, sdef:0.30, stam:0.10, sreg:0.05, slga:0.05};
+  var DEFAULT_DISTRICTS = [
+    {name:"District A", cmgs:2500, savings:4000, loan_ask:2500},
+    {name:"District B", cmgs:1800, savings:3000, loan_ask:2000},
+    {name:"District C", cmgs:3200, savings:5000, loan_ask:3000},
+    {name:"District D", cmgs:1500, savings:3500, loan_ask:1500},
+    {name:"District E", cmgs:2000, savings:4500, loan_ask:2500},
+  ];
+  var MAX_ROWS = 20;
+  var state = {inputs: Object.assign({}, DEFAULT_INPUTS), districts: DEFAULT_DISTRICTS.map(function(d){return Object.assign({},d);})};
+  var dirty = false, saving = false, dbDoc = null;
+
+  var USD = new Intl.NumberFormat('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0});
+  function fmtUSD(n){ return isFinite(n) ? USD.format(n) : "$0"; }
+  function fmtPct(n){ return isFinite(n) ? (Math.round(n*1000)/10) + "%" : "0%"; }
+
+  function fieldValue(key){
+    var v = state.inputs[key];
+    return PCT_KEYS[key] ? Math.round(v*1000)/10 : v;
+  }
+  function setFromField(key, raw){
+    var n = parseFloat(raw);
+    if (!isFinite(n)) n = 0;
+    state.inputs[key] = PCT_KEYS[key] ? n/100 : n;
+  }
+
+  function calc(){
+    var inp = state.inputs;
+    var corpus = inp.fund - inp.linc - inp.cinc;
+    var rows = state.districts.map(function(d){
+      var savings = d.savings||0, ask = d.loan_ask||0, cmgs = d.cmgs||0;
+      var cap = savings*inp.ratio;
+      var perCMG = Math.min(cap, ask);
+      var demand = cmgs*perCMG;
+      return Object.assign({}, d, {cap:cap, perCMG:perCMG, demand:demand});
+    });
+    var totalDemand = rows.reduce(function(s,r){return s+r.demand;},0);
+    var scale = totalDemand > 0 ? Math.min(1, corpus/totalDemand) : 0;
+    rows.forEach(function(r){ r.allocation = r.demand*scale; });
+    var totalAlloc = rows.reduce(function(s,r){return s+r.allocation;},0);
+    var slen = 1 - (inp.sdef+inp.stam+inp.sreg+inp.slga);
+    var termOk = inp.term>=1 && inp.term<=inp.maxterm;
+    var breakEven = slen>=0 ? (inp.sdef*inp.rate*inp.term/12)/(1+inp.sdef*inp.rate*inp.term/12) : NaN;
+    var totalCMGs = state.districts.reduce(function(s,d){return s+(d.cmgs||0);},0);
+    return {corpus:corpus, rows:rows, totalDemand:totalDemand, scale:scale, totalAlloc:totalAlloc,
+            slen:slen, termOk:termOk, breakEven:breakEven, totalCMGs:totalCMGs};
+  }
+
+  function render(){
+    var c = calc();
+
+    var tiles = [
+      {label:"Total fund", val: fmtUSD(state.inputs.fund)},
+      {label:"Lending corpus", val: fmtUSD(c.corpus)},
+      {label:"Total CMGs (all districts)", val: c.totalCMGs.toLocaleString()},
+      {label:"Total demand", val: fmtUSD(c.totalDemand)},
+      {label:"Scale factor", val: (Math.round(c.scale*1000)/10)+"%", cls: c.scale<1?"warn":"ok"},
+      {label:"Lender margin", val: fmtPct(c.slen), cls: c.slen<0?"bad":""},
+      {label:"Break-even default rate", val: isNaN(c.breakEven)?"—":fmtPct(c.breakEven)},
+    ];
+    document.getElementById('tiles').innerHTML = tiles.map(function(t){
+      return '<div class="tile '+(t.cls||'')+'"><span>'+t.label+'</span><b>'+t.val+'</b></div>';
+    }).join('');
+
+    document.getElementById('slen').textContent = fmtPct(c.slen);
+
+    var tbody = document.getElementById('districtRows');
+    tbody.innerHTML = '';
+    state.districts.forEach(function(d, i){
+      var r = c.rows[i];
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><input type="text" data-i="'+i+'" data-f="name" value="'+escapeAttr(d.name)+'"></td>'+
+        '<td><input type="number" min="0" step="10" data-i="'+i+'" data-f="cmgs" value="'+(d.cmgs||0)+'"></td>'+
+        '<td><input type="number" min="0" step="100" data-i="'+i+'" data-f="savings" value="'+(d.savings||0)+'"></td>'+
+        '<td><input type="number" min="0" step="100" data-i="'+i+'" data-f="loan_ask" value="'+(d.loan_ask||0)+'"></td>'+
+        '<td class="calc">'+fmtUSD(r.perCMG)+'</td>'+
+        '<td class="calc">'+fmtUSD(r.allocation)+'</td>'+
+        '<td><button class="danger" data-remove="'+i+'" title="Remove">✕</button></td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('addRow').disabled = state.districts.length >= MAX_ROWS;
+
+    var maxAlloc = Math.max.apply(null, c.rows.map(function(r){return r.allocation;}).concat([1]));
+    document.getElementById('bars').innerHTML = c.rows.map(function(r){
+      var pct = maxAlloc>0 ? (r.allocation/maxAlloc*100) : 0;
+      return '<div class="bar-row"><span>'+escapeHtml(r.name||'(unnamed)')+'</span>'+
+        '<span class="bar-track"><span class="bar-fill" style="width:'+pct+'%"></span></span>'+
+        '<span class="bar-val">'+fmtUSD(r.allocation)+'</span></div>';
+    }).join('') || '<p class="hint">No districts yet.</p>';
+  }
+
+  function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  function markDirty(){ dirty = true; updateStatus(); }
+  function updateStatus(){
+    var dot = document.getElementById('statusDot'), txt = document.getElementById('statusText');
+    if (saving){ dot.className='dot busy'; txt.textContent='Saving…'; }
+    else if (dirty){ dot.className='dot busy'; txt.textContent='Unsaved changes'; }
+    else if (dbDoc){ dot.className='dot ok'; txt.textContent='Saved'; }
+    else { dot.className='dot'; txt.textContent='Not connected — use Copy as text'; }
+  }
+
+  document.addEventListener('input', function(e){
+    var t = e.target;
+    if (INPUT_KEYS.indexOf(t.id) !== -1){
+      setFromField(t.id, t.value);
+      render(); markDirty();
+      return;
+    }
+    if (t.dataset && t.dataset.i !== undefined){
+      var i = parseInt(t.dataset.i, 10), f = t.dataset.f;
+      state.districts[i][f] = (f === 'name') ? t.value : parseFloat(t.value)||0;
+      render(); markDirty();
+    }
+  });
+  document.addEventListener('click', function(e){
+    if (e.target.id === 'addRow'){
+      if (state.districts.length < MAX_ROWS){
+        state.districts.push({name:'District '+String.fromCharCode(65+state.districts.length), cmgs:0, savings:0, loan_ask:0});
+        render(); markDirty();
+      }
+    } else if (e.target.dataset && e.target.dataset.remove !== undefined){
+      state.districts.splice(parseInt(e.target.dataset.remove,10), 1);
+      render(); markDirty();
+    } else if (e.target.id === 'saveBtn'){
+      save();
+    } else if (e.target.id === 'copyBtn'){
+      copyConfig();
+    }
+  });
+
+  function fillFields(){
+    INPUT_KEYS.forEach(function(k){
+      var el = document.getElementById(k);
+      if (el) el.value = fieldValue(k);
+    });
+  }
+
+  function configPayload(){
+    return {inputs: state.inputs, districts: state.districts.filter(function(d){return d.name;}), updatedAt: new Date().toISOString()};
+  }
+
+  function copyConfig(){
+    var text = JSON.stringify(configPayload(), null, 2);
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(e){}
+      document.body.removeChild(ta);
+      flashCopy();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(flashCopy, fallback);
+    } else fallback();
+  }
+  function flashCopy(){
+    var b = document.getElementById('copyBtn');
+    var old = b.textContent; b.textContent = 'Copied ✓';
+    setTimeout(function(){ b.textContent = old; }, 1500);
+  }
+
+  function save(){
+    saveLocal();
+    if (!dbDoc){ updateStatus(); return; }
+    saving = true; updateStatus();
+    dbDoc.set(configPayload()).then(function(){
+      saving = false; dirty = false; updateStatus();
+    }).catch(function(){
+      saving = false; updateStatus();
+    });
+  }
+  function saveLocal(){
+    try { localStorage.setItem('pamoja-model-config', JSON.stringify(configPayload())); } catch(e){}
+  }
+  function loadLocal(){
+    try {
+      var raw = localStorage.getItem('pamoja-model-config');
+      if (raw) applyPayload(JSON.parse(raw));
+    } catch(e){}
+  }
+  function applyPayload(payload){
+    if (!payload) return;
+    if (payload.inputs) INPUT_KEYS.forEach(function(k){ if (payload.inputs[k] !== undefined) state.inputs[k] = payload.inputs[k]; });
+    if (payload.districts && payload.districts.length) state.districts = payload.districts.map(function(d){ return {name:d.name||'', cmgs:d.cmgs||0, savings:d.savings||0, loan_ask:d.loan_ask||0}; });
+  }
+
+  loadLocal();
+  fillFields();
+  render();
+  updateStatus();
+
+  (window.claude && window.claude.use ? window.claude.use('db') : Promise.resolve(null)).then(function(db){
+    if (!db){ document.getElementById('fallbackNote').hidden = false; updateStatus(); return; }
+    dbDoc = db.doc('config/current');
+    dbDoc.get().then(function(snap){
+      if (snap.exists && snap.data()){
+        applyPayload(snap.data());
+        fillFields(); render();
+      }
+      updateStatus();
+    }).catch(function(){ updateStatus(); });
+  }).catch(function(){
+    document.getElementById('fallbackNote').hidden = false;
+    updateStatus();
+  });
+})();
+</script>
