@@ -1,4 +1,4 @@
-"""Builds PAMOJA_Financial_Model_v0.4.xlsx (simple fund-flow model).
+"""Builds PAMOJA_Financial_Model_v0.5.xlsx (simple fund-flow model).
 Run: python3 model/build_model.py [config.json]   (needs openpyxl)
 All numbers in blue on yellow are inputs. Everything else is a formula.
 
@@ -11,11 +11,12 @@ Any key left out keeps its default. See DEFAULT_INPUTS / DEFAULT_DISTRICTS below
 import json
 import sys
 from openpyxl import Workbook
-from openpyxl.chart import BarChart, Reference
+from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter as col
+from openpyxl.worksheet.datavalidation import DataValidation
 
-VERSION = "v0.4"
+VERSION = "v0.5"
 OUT = f"model/PAMOJA_Financial_Model_{VERSION}.xlsx"
 MONTHS = 24          # year 1 (lending) + year 2 (loans made late in year 1 finish)
 
@@ -35,6 +36,25 @@ DEFAULT_DISTRICTS = [
     {"name": "District D", "cmgs": 1500, "savings": 3500, "loan_ask": 1500},
     {"name": "District E", "cmgs": 2000, "savings": 4500, "loan_ask": 2500},
 ]
+
+# 8 pilot districts for the weekly issuance timeline (Pilot districts / District timeline /
+# Corpus rollout sheets). A separate, smaller placeholder pool from the annual $20m model above -
+# not yet reconciled with it (see open question 13).
+PILOT_CORPUS = 6_000_000
+PILOT_CONVERSION = 0.80   # share of appraised CMGs that are actually approved AND accept the loan
+PILOT_TERM_WEEKS = 26
+PILOT_REDEPLOY = 1        # 0 = hold as cash, 1 = same FI redeploys, 2 = handed to a 2nd FI in district
+PILOT_DISTRICTS = [
+    {"name": "District 1", "cmgs": 400, "savings": 4000, "loan_ask": 2500, "fis": 2, "cap_per_fi": 6, "lag": 2, "rollout": 1},
+    {"name": "District 2", "cmgs": 350, "savings": 3500, "loan_ask": 2200, "fis": 2, "cap_per_fi": 5, "lag": 2, "rollout": 1},
+    {"name": "District 3", "cmgs": 500, "savings": 4500, "loan_ask": 2800, "fis": 3, "cap_per_fi": 5, "lag": 3, "rollout": 3},
+    {"name": "District 4", "cmgs": 300, "savings": 3000, "loan_ask": 2000, "fis": 1, "cap_per_fi": 6, "lag": 2, "rollout": 5},
+    {"name": "District 5", "cmgs": 450, "savings": 5000, "loan_ask": 3000, "fis": 2, "cap_per_fi": 5, "lag": 3, "rollout": 5},
+    {"name": "District 6", "cmgs": 250, "savings": 3500, "loan_ask": 2200, "fis": 1, "cap_per_fi": 5, "lag": 2, "rollout": 9},
+    {"name": "District 7", "cmgs": 380, "savings": 4000, "loan_ask": 2500, "fis": 2, "cap_per_fi": 4, "lag": 3, "rollout": 13},
+    {"name": "District 8", "cmgs": 320, "savings": 3800, "loan_ask": 2300, "fis": 1, "cap_per_fi": 6, "lag": 2, "rollout": 17},
+]
+PILOT_WEEKS = 104   # 2-year horizon
 
 
 def load_config(path):
@@ -148,6 +168,16 @@ QUESTIONS = [
      "Placeholders now: TAMISEMI absorbs 50% of every default, the lender the other 50%; the lender returns "
      "100% of repaid principal to TAMISEMI. Matches question 12 on the flowchart (trigger and timing of risk "
      "share are still open).", "v0.4"),
+    (13, "How does the 8-district pilot pool ($6m placeholder) relate to the $24m annual model - is it part of "
+     "the same $20m corpus, or a separate first tranche?",
+     "The two are not reconciled yet: 'Pilot districts' has its own corpus figure and its own scale-down logic.", "v0.5"),
+    (14, "Appraisal capacity, the appraisal->disbursal lag, and the conversion rate are all placeholders per "
+     "district (and constant over time) - what are the real figures, and do they vary by season or by lender?",
+     "These three numbers set the whole pace of the weekly cascade on 'District timeline'.", "v0.5"),
+    (15, "Should recycled repayments be capped at what the district can still use (CMGs not yet served), or can "
+     "they always be redeployed even if it means lending to the same CMGs again?",
+     "In the placeholder run, once a district's CMGs are all appraised, recycled cash sits idle in the pool - "
+     "see 'District timeline' for District 1.", "v0.5"),
 ]
 
 # ---------------------------------------------------------------- Read me
@@ -163,7 +193,9 @@ lines = [
     "3. Districts: CMG numbers, savings and loan size per LGA.",
     "4. Monthly cycle: when loans go out and come back over 24 months (year 1 lending, year 2 run-off).",
     "5. Fund flow: totals for all loans made in the year, with a check that the corpus is restored.",
-    "6. Open questions: things to settle. Glossary: acronyms and terms.",
+    "6. Pilot districts / District timeline / Corpus rollout: a separate, weekly view of loan issuance",
+    "   for 8 pilot districts (see CHANGES IN v0.5 below).",
+    "7. Open questions: things to settle. Glossary: acronyms and terms.",
     "",
     "IMPORTANT",
     "- All district data and rates are DUMMY placeholders. Replace them with real figures.",
@@ -193,6 +225,20 @@ lines = [
     "  of defaults + principal kept back).",
     "- Break-even default rate and the default budget needed now only have to cover TAMISEMI's",
     "  risk share of defaults, not the whole default.",
+    "",
+    "CHANGES IN v0.5 - the pilot-district weekly model",
+    "- Three new sheets model 8 pilot districts week by week (separate from the annual model above,",
+    "  with its own $6m placeholder pool - see question 13):",
+    "  * Pilot districts: CMG data, FIs, weekly appraisal capacity, appraisal->disbursal lag and",
+    "    rollout start week for each of the 8 districts.",
+    "  * District timeline: pick one district and see, week by week, appraisals, disbursals, the",
+    "    loan book (Portfolio Outstanding), and when its pool would run out - with a toggle for",
+    "    whether repayments are recycled and by whom.",
+    "  * Corpus rollout: all 8 districts side by side, with a tranche % input comparing 'give each",
+    "    district its full allocation upfront' against 'a smaller tranche now, rest held in reserve",
+    "    at TAMISEMI' - showing idle cash at TAMISEMI over time either way.",
+    "- Not every appraised CMG becomes a loan: a conversion rate (appraisal pass + CMG acceptance,",
+    "  80% placeholder) reduces disbursals below capacity.",
     "",
     "SIMPLE LOGIC",
     "- Lending corpus = Total fund - Lender incentives - CMG incentives.",
@@ -531,6 +577,246 @@ chart.legend = None
 chart.width, chart.height = 16, 9
 ff.add_chart(chart, f"A{ch_row + len(CH) + 2}")
 
+# ---------------------------------------------------------------- Pilot districts
+pd_ = wb.create_sheet("Pilot districts")
+title(pd_, "Pilot districts", "8 districts for the weekly issuance timeline. All data below is placeholder.")
+header(pd_, 4, ["Item", "Value", "Unit", "Note"])
+PA = table(pd_, 5, [
+    (None, "PILOT CORPUS AND SHARED ASSUMPTIONS", None, None, None, None),
+    ("pcorpus", "Pilot corpus (USD)", PILOT_CORPUS, USD, "USD",
+     "A separate, smaller pool from the annual $20m model - not yet reconciled with it (question 13)"),
+    ("pratio", "Maximum Loan:Savings ratio (from Inputs)", f"={R('ratio')}", "0.00", "x", "Reused from the Inputs sheet"),
+    ("prate", "Interest rate (from Inputs)", f"={R('rate')}", PCT, "%", "Reused from the Inputs sheet"),
+    ("pdef", "Portfolio default rate (from Inputs)", f"={R('def')}", PCT, "%", "Reused from the Inputs sheet"),
+    ("pterm", "Term used in this weekly model", PILOT_TERM_WEEKS, "0", "weeks", "Separate from the annual model's monthly term"),
+    ("pconv", "Appraisal -> disbursal conversion rate", PILOT_CONVERSION, PCT, "%",
+     "Share of appraised CMGs that are approved AND accept the loan"),
+    ("predeploy", "Redeployment mode (District timeline sheet)", PILOT_REDEPLOY, "0", "0/1/2",
+     "0 = hold repayments as cash, 1 = same FI redeploys them, 2 = handed to a 2nd FI in the district (same maths, different label)"),
+])
+for key in ("pratio", "prate", "pdef"):
+    pd_[f"B{PA[key]}"].font = BOLD
+
+PFIRST = PA["predeploy"] + 3
+header(pd_, PFIRST - 1, ["District", "Number of CMGs", "Avg savings/CMG (USD)", "Avg loan ask/CMG (USD)",
+                         "Loan cap/CMG", "Loan/CMG", "Demand (USD)", "Full allocation (USD)",
+                         "# FIs assigned", "Weekly capacity/FI (CMGs)", "Combined weekly capacity",
+                         "Application -> disbursal lag (wks)", "Rollout start week"])
+pd_.row_dimensions[PFIRST - 1].height = 40
+PLAST = PFIRST + len(PILOT_DISTRICTS) - 1
+PT = PLAST + 1
+for i, d in enumerate(PILOT_DISTRICTS):
+    r = PFIRST + i
+    pd_.cell(row=r, column=1, value=d["name"]).fill = INPUT
+    for c, v, f in ((2, d["cmgs"], NUM), (3, d["savings"], USD), (4, d["loan_ask"], USD),
+                    (9, d["fis"], NUM), (10, d["cap_per_fi"], NUM), (12, d["lag"], "0"), (13, d["rollout"], "0")):
+        inp(pd_.cell(row=r, column=c, value=v), f)
+    pd_.cell(row=r, column=5, value=f"=C{r}*$B${PA['pratio']}").number_format = USD
+    pd_.cell(row=r, column=6, value=f"=MIN(D{r},E{r})").number_format = USD
+    pd_.cell(row=r, column=7, value=f"=B{r}*F{r}").number_format = USD
+    pd_.cell(row=r, column=8, value=f"=G{r}*$B${PT + 3}").number_format = USD
+    pd_.cell(row=r, column=11, value=f"=I{r}*J{r}").number_format = NUM
+pd_.cell(row=PT, column=1, value="TOTAL").font = BOLD
+for c, f in ((2, NUM), (7, USD), (8, USD), (11, NUM)):
+    L = col(c)
+    cell = pd_.cell(row=PT, column=c, value=f"=SUM({L}{PFIRST}:{L}{PLAST})")
+    cell.number_format, cell.font = f, BOLD
+pd_[f"A{PT+2}"], pd_[f"B{PT+2}"] = "Pilot corpus", f"=B{PA['pcorpus']}"
+pd_[f"A{PT+3}"], pd_[f"B{PT+3}"] = "Scale factor (1 = full demand met)", f"=IF(G{PT}=0,0,MIN(1,B{PT+2}/G{PT}))"
+pd_[f"A{PT+4}"], pd_[f"B{PT+4}"] = "Corpus not used", f"=B{PT+2}-H{PT}"
+pd_[f"A{PT+5}"], pd_[f"B{PT+5}"] = "Demand not met", f"=G{PT}-H{PT}"
+for r, f in ((PT + 2, USD), (PT + 3, "0.00"), (PT + 4, USD), (PT + 5, USD)):
+    pd_[f"B{r}"].number_format, pd_[f"B{r}"].font = f, BOLD
+pd_.column_dimensions["A"].width = 14
+for c in range(2, 14):
+    pd_.column_dimensions[col(c)].width = 15
+pd_.freeze_panes = "B" + str(PFIRST)
+
+PNAMES = f"'Pilot districts'!$A${PFIRST}:$A${PLAST}"
+PCMGS = f"'Pilot districts'!$B${PFIRST}:$B${PLAST}"
+PLPC = f"'Pilot districts'!$F${PFIRST}:$F${PLAST}"
+PALLOC = f"'Pilot districts'!$H${PFIRST}:$H${PLAST}"
+PCAP = f"'Pilot districts'!$K${PFIRST}:$K${PLAST}"
+PLAG = f"'Pilot districts'!$L${PFIRST}:$L${PLAST}"
+
+# ---------------------------------------------------------------- District timeline
+dt = wb.create_sheet("District timeline")
+title(dt, "District timeline: weekly loan issuance cascade",
+      "Pick a pilot district below. Weeks run down the rows so the cascade charts naturally.")
+dt["A4"] = "Pick a district:"
+dt["A4"].font = BOLD
+dt["B4"] = PILOT_DISTRICTS[0]["name"]
+dt["B4"].fill, dt["B4"].font, dt["B4"].border = INPUT, BLUE, BOX
+dv = DataValidation(type="list", formula1=f"={PNAMES}", allow_blank=False)
+dt.add_data_validation(dv)
+dv.add(dt["B4"])
+
+header(dt, 6, ["Item", "Value", "Unit", "Note"])
+SEL = "$B$4"
+TL = table(dt, 7, [
+    (None, "SELECTED DISTRICT'S PARAMETERS (looked up from 'Pilot districts')", None, None, None, None),
+    ("cmgs", "Number of CMGs", f"=INDEX({PCMGS},MATCH({SEL},{PNAMES},0))", NUM, "CMGs", ""),
+    ("lpc", "Loan per CMG (USD)", f"=INDEX({PLPC},MATCH({SEL},{PNAMES},0))", USD, "USD", ""),
+    ("alloc", "Full allocation (USD)", f"=INDEX({PALLOC},MATCH({SEL},{PNAMES},0))", USD, "USD", ""),
+    ("cap", "Combined weekly appraisal capacity", f"=INDEX({PCAP},MATCH({SEL},{PNAMES},0))", NUM, "CMGs/wk", ""),
+    ("lag", "Application -> disbursal lag", f"=INDEX({PLAG},MATCH({SEL},{PNAMES},0))", "0", "weeks", ""),
+    ("term", "Term used in this weekly model", f"='Pilot districts'!B{PA['pterm']}", "0", "weeks", "From 'Pilot districts'"),
+    ("rate", "Interest rate", f"='Pilot districts'!B{PA['prate']}", PCT, "%", "From 'Pilot districts'"),
+    ("def", "Portfolio default rate", f"='Pilot districts'!B{PA['pdef']}", PCT, "%", "From 'Pilot districts'"),
+    ("conv", "Appraisal -> disbursal conversion rate", f"='Pilot districts'!B{PA['pconv']}", PCT, "%", "From 'Pilot districts'"),
+    ("redeploy", "Redeployment mode (0/1/2)", f"='Pilot districts'!B{PA['predeploy']}", "0", "",
+     "0 = hold cash, 1 = same FI redeploys, 2 = 2nd FI in district (same maths)"),
+], ncols=4)
+
+hdr = TL["redeploy"] + 2
+header(dt, hdr, ["Week", "New CMGs appraised", "New CMGs disbursed", "Capital disbursed this wk",
+                 "Cumulative capital disbursed", "Capital remaining in pool", "Principal due",
+                 "Principal repaid", "Interest collected", "Recycled capital", "Portfolio Outstanding",
+                 "Pool exhausted?"])
+dt.row_dimensions[hdr].height = 40
+WF, WL = hdr + 1, hdr + PILOT_WEEKS
+Bc, Cc, Dc, Ec, Fc, Gc, Hc, Ic, Jc, Kc, Lc2 = "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"
+for w in range(1, PILOT_WEEKS + 1):
+    r = WF + w - 1
+    dt[f"A{r}"] = w
+    prevB = "0" if w == 1 else f"SUM($B${WF}:B{r-1})"
+    dt[f"{Bc}{r}"] = f"=MAX(0,MIN($B${TL['cap']},$B${TL['cmgs']}-{prevB}))"
+    proposed = f'IF(A{r}<=$B${TL["lag"]},0,N(OFFSET(B{r},-$B${TL["lag"]},0))*$B${TL["conv"]})'
+    prevF = f"$B${TL['alloc']}" if w == 1 else f"F{r-1}"
+    dt[f"{Cc}{r}"] = f"=MIN({proposed},IF($B${TL['lpc']}=0,0,{prevF}/$B${TL['lpc']}))"
+    dt[f"{Dc}{r}"] = f"=C{r}*$B${TL['lpc']}"
+    dt[f"{Ec}{r}"] = f"=D{r}" if w == 1 else f"=E{r-1}+D{r}"
+    dt[f"{Fc}{r}"] = f"=$B${TL['alloc']}-E{r}+SUM($J${WF}:J{r})"
+    if w == 1:
+        dt[f"{Gc}{r}"] = "=0"
+    else:
+        dt[f"{Gc}{r}"] = f'=SUMIFS($D${WF}:D{r-1},$A${WF}:A{r-1},">="&(A{r}-$B${TL["term"]}))/$B${TL["term"]}'
+    dt[f"{Hc}{r}"] = f"=G{r}*(1-$B${TL['def']})"
+    dt[f"{Ic}{r}"] = f"=H{r}*$B${TL['rate']}/52*$B${TL['term']}"
+    dt[f"{Jc}{r}"] = f"=IF($B${TL['redeploy']}>0,H{r},0)"
+    dt[f"{Kc}{r}"] = f"=E{r}-SUM($H${WF}:H{r})"
+    dt[f"{Lc2}{r}"] = f'=IF(F{r}<$B${TL["lpc"]},"Yes","No")'
+    for c in "BC":
+        dt[f"{c}{r}"].number_format = NUM
+    for c in "DEFGHIJK":
+        dt[f"{c}{r}"].number_format = USD
+sumr = WL + 2
+section(dt, sumr - 1, "SUMMARY", 4)
+summary = [
+    ("Weeks to exhaust the pool", f'=IFERROR(INDEX($A${WF}:$A${WL},MATCH("Yes",$L${WF}:$L${WL},0)),"Not within {PILOT_WEEKS} weeks")', "@"),
+    ("Peak Portfolio Outstanding", f"=MAX($K${WF}:$K${WL})", USD),
+    ("Week of peak Portfolio Outstanding", f"=INDEX($A${WF}:$A${WL},MATCH(MAX($K${WF}:$K${WL}),$K${WF}:$K${WL},0))", "0"),
+    ("Total CMGs served", f"=SUM($C${WF}:C${WL})", NUM),
+    ("Total capital disbursed", f"=E{WL}", USD),
+    ("Total capital recycled", f"=SUM($J${WF}:J{WL})", USD),
+]
+for i, (lab, f, fmt) in enumerate(summary, sumr):
+    dt[f"A{i}"], dt[f"B{i}"] = lab, f
+    dt[f"B{i}"].number_format, dt[f"B{i}"].font = fmt, BOLD
+dt[f"A{i+2}"] = ("To compare with vs without recycling: change the Redeployment mode on 'Pilot districts' "
+                 "(0 = off) and re-check 'Weeks to exhaust the pool' and 'Total capital disbursed' above.")
+dt.column_dimensions["A"].width = 34
+for c in range(2, 13):
+    dt.column_dimensions[col(c)].width = 15
+dt.freeze_panes = f"B{WF}"
+
+lchart = LineChart()
+lchart.title, lchart.y_axis.title, lchart.x_axis.title = "Weekly cascade for the selected district", "USD", "Week"
+lchart.y_axis.numFmt = USD
+cats = Reference(dt, min_col=1, min_row=WF, max_row=WL)
+data = Reference(dt, min_col=6, max_col=6, min_row=hdr, max_row=WL)
+lchart.add_data(data, titles_from_data=True)
+data2 = Reference(dt, min_col=11, max_col=11, min_row=hdr, max_row=WL)
+lchart.add_data(data2, titles_from_data=True)
+lchart.set_categories(cats)
+lchart.width, lchart.height = 20, 10
+dt.add_chart(lchart, f"A{i+4}")
+
+# ---------------------------------------------------------------- Corpus rollout
+cr = wb.create_sheet("Corpus rollout")
+title(cr, "Corpus rollout: full allocation upfront vs staggered tranches",
+      "All 8 pilot districts side by side. Does spending most of the pool on early districts strand later ones?")
+header(cr, 4, ["Item", "Value", "Unit", "Note"])
+CRA = table(cr, 5, [
+    (None, "ROLLOUT ASSUMPTIONS", None, None, None, None),
+    ("tranche", "Tranche advanced to each district upfront (rest held as TAMISEMI reserve)", 0.70, PCT, "%",
+     "100% = the whole allocation goes out on day one, like the annual model"),
+    ("need", "New region funding need (illustrative)", 1_500_000, USD, "USD",
+     "Just to test whether the reserve would cover a call for funds from elsewhere"),
+])
+DFIRST = CRA["need"] + 3
+header(cr, DFIRST - 1, ["District", "Full allocation (USD)", "Committed tranche (USD)", "Reserve contribution (USD)",
+                        "Rollout start week", "Combined weekly capacity", "Loan/CMG (USD)", "Weeks to exhaust tranche"])
+cr.row_dimensions[DFIRST - 1].height = 40
+DLAST = DFIRST + len(PILOT_DISTRICTS) - 1
+DTOTAL = DLAST + 1
+for i in range(len(PILOT_DISTRICTS)):
+    r, pr = DFIRST + i, PFIRST + i
+    cr[f"A{r}"] = f"='Pilot districts'!A{pr}"
+    cr[f"B{r}"] = f"='Pilot districts'!H{pr}"
+    cr[f"C{r}"] = f"=B{r}*$B${CRA['tranche']}"
+    cr[f"D{r}"] = f"=B{r}-C{r}"
+    cr[f"E{r}"] = f"='Pilot districts'!M{pr}"
+    cr[f"F{r}"] = f"='Pilot districts'!K{pr}"
+    cr[f"G{r}"] = f"='Pilot districts'!F{pr}"
+    cr[f"H{r}"] = f"=IF(F{r}*G{r}=0,0,ROUNDUP(C{r}/(F{r}*G{r}),0))"
+    for c, f in ((2, USD), (3, USD), (4, USD), (5, "0"), (6, NUM), (7, USD), (8, "0")):
+        cr.cell(row=r, column=c).number_format = f
+cr[f"A{DTOTAL}"] = "TOTAL"
+cr[f"A{DTOTAL}"].font = BOLD
+for c, f in ((2, USD), (3, USD), (4, USD)):
+    L = col(c)
+    cell = cr.cell(row=DTOTAL, column=c, value=f"=SUM({L}{DFIRST}:{L}{DLAST})")
+    cell.number_format, cell.font = f, BOLD
+cr[f"A{DTOTAL+2}"] = "Reserve covers the new region funding need?"
+cr[f"B{DTOTAL+2}"] = f'=IF(D{DTOTAL}>=B{CRA["need"]},"Yes","No")'
+cr[f"B{DTOTAL+2}"].font = BOLD
+
+GRID = DTOTAL + 4
+section(cr, GRID - 1, "WEEKLY CASCADE - capital disbursed to CMGs, by district (capacity-limited, no recycling)", 12)
+header(cr, GRID, ["Week"] + [""] * len(PILOT_DISTRICTS) + ["Total disbursed", "Idle cash at TAMISEMI"])
+# fill the per-district header cells with formulas pulling the live district names
+for i in range(len(PILOT_DISTRICTS)):
+    c = cr.cell(row=GRID, column=2 + i, value=f"=A{DFIRST+i}")
+    c.fill, c.font, c.border = HEAD, WHITE, BOX
+GWF, GWL = GRID + 1, GRID + PILOT_WEEKS
+for w in range(1, PILOT_WEEKS + 1):
+    r = GWF + w - 1
+    cr[f"A{r}"] = w
+    for i in range(len(PILOT_DISTRICTS)):
+        dc, drow = col(2 + i), DFIRST + i
+        cr[f"{dc}{r}"] = (f"=IF(A{r}<$E${drow},0,MIN($C${drow},($F${drow}*$G${drow})*(A{r}-$E${drow}+1)))")
+        cr[f"{dc}{r}"].number_format = USD
+    lastdc = col(2 + len(PILOT_DISTRICTS) - 1)
+    cr[f"{col(2+len(PILOT_DISTRICTS))}{r}"] = f"=SUM(B{r}:{lastdc}{r})"
+    cr[f"{col(2+len(PILOT_DISTRICTS))}{r}"].number_format = USD
+    cr[f"{col(3+len(PILOT_DISTRICTS))}{r}"] = (
+        f"='Pilot districts'!$B${PA['pcorpus']}-SUMPRODUCT(($E${DFIRST}:$E${DLAST}<=A{r})*$C${DFIRST}:$C${DLAST})")
+    cr[f"{col(3+len(PILOT_DISTRICTS))}{r}"].number_format = USD
+cr.column_dimensions["A"].width = 30
+for c in range(2, 4 + len(PILOT_DISTRICTS)):
+    cr.column_dimensions[col(c)].width = 15
+cr.freeze_panes = f"B{GWF}"
+
+lchart2 = LineChart()
+lchart2.title, lchart2.y_axis.title, lchart2.x_axis.title = "Capital disbursed by district", "USD", "Week"
+lchart2.y_axis.numFmt = USD
+cats2 = Reference(cr, min_col=1, min_row=GWF, max_row=GWL)
+data3 = Reference(cr, min_col=2, max_col=1 + len(PILOT_DISTRICTS), min_row=GRID, max_row=GWL)
+lchart2.add_data(data3, titles_from_data=True)
+lchart2.set_categories(cats2)
+lchart2.width, lchart2.height = 22, 10
+cr.add_chart(lchart2, f"A{GWL+2}")
+
+lchart3 = LineChart()
+lchart3.title, lchart3.y_axis.title, lchart3.x_axis.title = "Idle cash sitting at TAMISEMI", "USD", "Week"
+lchart3.y_axis.numFmt = USD
+data4 = Reference(cr, min_col=3 + len(PILOT_DISTRICTS), max_col=3 + len(PILOT_DISTRICTS), min_row=GRID, max_row=GWL)
+lchart3.add_data(data4, titles_from_data=True)
+lchart3.set_categories(cats2)
+lchart3.width, lchart3.height = 22, 10
+cr.add_chart(lchart3, f"L{GWL+2}")
+
 # ---------------------------------------------------------------- Open questions sheet
 oq = wb.create_sheet("Open questions")
 title(oq, "Open questions", "To settle before the model uses real figures.")
@@ -551,9 +837,12 @@ terms = [
     ("Advance", "Money TAMISEMI sends a lender ahead of lending, based on the CMG pool allocated to that lender."),
     ("Allocation", "The share of the lending corpus given to a district, based on its loan demand."),
     ("Annual cycle", "The CMG's savings year. Loans must be repaid before the share-out at the end."),
+    ("Appraisal", "A lender's check of a CMG before deciding whether to lend, and how much. Capacity-limited on 'District timeline' (CMGs a lender can appraise per week)."),
     ("Break-even default rate", "The highest default rate the default budget and TAMISEMI's risk share can cover and still restore the corpus."),
     ("CMG", "Community Microfinance Group: a savings group whose members save and lend to each other."),
-    ("Corpus", "The pool of money available to lend ($24m less the $4m set aside for incentives)."),
+    ("Committed tranche", "On 'Corpus rollout': the share of a district's allocation advanced upfront, per the tranche % input."),
+    ("Conversion rate", "On the pilot-district sheets: the share of appraised CMGs that are approved and go on to accept the loan."),
+    ("Corpus", "The pool of money available to lend ($24m less the $4m set aside for incentives). The pilot-district sheets use a separate, smaller placeholder pool."),
     ("Default", "A loan, or part of a loan, that is not repaid."),
     ("Default budget / loss reserve", "The share of interest set aside to cover TAMISEMI's risk share of defaults."),
     ("Demand", "Number of CMGs x loan per CMG, before any scaling down."),
@@ -565,9 +854,13 @@ terms = [
     ("LGA", "Local Government Authority: the district or council."),
     ("Loan:Savings ratio", "Loan amount divided by the CMG's savings. Capped by the maximum ratio input."),
     ("Portfolio default rate", "Defaulted principal as a % of all loans made."),
+    ("Portfolio Outstanding", "The running loan book: capital disbursed so far, less principal repaid so far (defaulted principal is not written off in this simple version)."),
     ("Principal", "The amount lent, not counting interest."),
+    ("Redeployment mode", "On the pilot-district sheets: whether repayments are held as cash (0), recycled by the same FI (1), or handed to a 2nd FI in the district (2) - modelled the same way, reported separately."),
     ("Re-lending / revolving fund", "Lending repayments out again instead of holding them as cash."),
+    ("Reserve (TAMISEMI)", "On 'Corpus rollout': the share of the pilot pool not yet advanced to any district, held back for later needs."),
     ("Risk share", "How the loss on a defaulted loan is split between TAMISEMI (absorbed against the corpus) and the lender (its own loss, repaid to the fund as compensation)."),
+    ("Rollout start week", "The week a pilot district begins appraising CMGs, on the pilot-district sheets."),
     ("Run-off", "The period after lending stops, while loans already made are being repaid."),
     ("Scale factor", "The % of demand that can be met when demand is more than the corpus."),
     ("Service fee", "The Region and LGA shares of interest collected (previously called Region/LGA share)."),
