@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMG Financing Lifecycle</title>
+<style>
+  :root{
+    --p:#1f4e79; --l:#4a8fd1; --fi:#b8437f; --c:#1f9e89; --e:#e39b2d; --m:#2e7d32; --ob:#6a3fa0; --enf:#8a2d2d;
+    --bg:#eef2f6; --card:#fff; --line:#c9d1da; --soft:#e3e8ee; --ink:#1d2630; --ink2:#3b4652; --mute:#6b7682;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif}
+  .app{height:100vh;display:grid;grid-template-columns:1fr 284px;
+    grid-template-rows:auto auto 1fr auto;gap:8px 14px;padding:12px 16px 12px}
+  header{grid-column:1/3;display:flex;align-items:baseline;gap:14px}
+  header h1{font-size:21px;margin:0}
+  header span{font-size:12.5px;color:var(--mute)}
+  .rail{--rc:var(--ink2);display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  .rl{font-size:12px;font-weight:700;color:var(--ink2);min-width:128px;display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .chip{font:inherit;font-size:12.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:4px 11px;cursor:pointer;line-height:1.2}
+  .chip b{color:var(--mute);font-weight:600;margin-right:4px}
+  .chip:hover,.chip.on{border-color:var(--ink2);color:var(--ink)}
+  .chip.on{background:#eef2f6}
+  .rails-bottom{display:flex;flex-direction:column;gap:3px}
+  .rails-bottom .rail{gap:4px}
+  .rails-bottom .rl{font-size:10.5px;min-width:104px;gap:5px}
+  .rails-bottom .dot{width:8px;height:8px}
+  .rails-bottom .chip{font-size:10.5px;padding:2px 8px}
+  /* the onion: one frame per lender, nested */
+  .stage,.ring{min-height:0;position:relative;display:flex;flex-direction:column;border:2px solid var(--k);border-radius:14px}
+  .stage{--k:var(--p);background:#fff;box-shadow:0 2px 14px -6px rgba(31,78,121,.35)}
+  .body{flex:1;min-height:0;display:flex;flex-direction:column;padding:3px 6px 6px}
+  .ring{flex:1;border-radius:12px;padding:5px 6px 5px}
+  .r2{--k:var(--fi);background:#fffafc}
+  .r3{--k:var(--c);background:#f7fdfc}
+  /* top shelf: one numbered tab per loop, in the loop's colour */
+  .shelf{flex:none;display:flex;align-items:flex-start;gap:3px}
+  .tab{font:inherit;font-size:12px;font-weight:700;letter-spacing:.02em;border:0;cursor:pointer;display:flex;align-items:center;gap:7px;
+    padding:3px 13px 4px 9px;border-radius:0 0 10px 10px;background:color-mix(in srgb,var(--k) 13%,#fff);color:var(--k)}
+  .tab:first-child{border-radius:11px 0 10px 0}
+  .tab b{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--k);color:#fff;font-size:10.5px}
+  .tab:hover{background:color-mix(in srgb,var(--k) 24%,#fff)}
+  .tab[aria-pressed="true"]{background:var(--k);color:#fff}
+  .tab[aria-pressed="true"] b{background:#fff;color:var(--k)}
+  .tab.has{box-shadow:inset 0 -3px 0 var(--ink)}
+  .full{margin-left:auto;align-self:center;font:inherit;font-size:11.5px;color:var(--mute);background:none;border:0;padding:3px 10px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .full:hover,.full[aria-pressed="true"]{color:var(--ink)}
+  .rlab{display:none;font-size:11.5px;font-weight:700;color:var(--k);margin:0 0 2px 4px}
+  .stage svg{flex:1;min-height:0;width:100%;display:block}
+  .stage[data-level="1"] .r2,
+  .stage[data-level="2"] #dg1,.stage[data-level="2"] .r3,
+  .stage[data-level="3"] #dg1,.stage[data-level="3"] #dg2{display:none}
+  .stage[data-level="full"] .body{display:block;overflow-y:auto}
+  .stage[data-level="full"] .ring{display:block;margin-top:8px}
+  .stage[data-level="full"] svg{height:auto}
+  .stage[data-level="full"] .rlab{display:block}
+  .chip.p{border-color:#9fb5cc}
+  .chip.p:hover,.chip.p.on{border-color:var(--p);background:#e6edf5}
+  .rl.p{color:var(--p)}
+  /* chips that apply to the step shown in the side panel */
+  .chip.rel,.chip.p.rel{border-color:var(--rc);background:color-mix(in srgb,var(--rc) 20%,#fff);color:var(--ink);box-shadow:0 0 0 1.5px var(--rc)}
+  .chip.rel b{color:var(--ink)}
+  .app.pin .chip:not(.rel){opacity:.5}
+  aside{grid-column:2;grid-row:2/5;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;overflow:hidden auto;font-size:13px;color:var(--ink2);display:flex;flex-direction:column}
+  aside h2{font-size:16px;margin:0 0 4px;color:var(--ink)}
+  aside .sub{color:var(--mute);font-size:12px;margin-bottom:12px}
+  aside h4{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+  aside p{margin:0 0 6px;line-height:1.45}
+  aside .tags{display:flex;flex-wrap:wrap;gap:5px}
+  aside .tag{font-size:11.5px;border:1px solid var(--soft);border-radius:999px;padding:2px 8px;background:#fafbfc}
+  aside .open{border-left:3px solid var(--e);padding-left:8px;font-size:12.5px}
+  .who{display:flex;gap:6px 10px;flex-wrap:wrap;margin-bottom:6px}
+  .who span{font-size:12px;display:flex;align-items:center;gap:5px}
+  .nest{border:1.5px solid var(--k);border-radius:10px;padding:6px 10px 8px;font-size:12px;font-weight:700;color:var(--k)}
+  .nest .nest{margin-top:5px}
+  .nest small{font-weight:400;color:var(--ink2)}
+  .nest.np{--k:var(--p);background:#e6edf5}
+  .nest.nf{--k:var(--fi);background:#fbf0f5}
+  .nest.nc{--k:var(--c);background:#e3f4f1}
+  .nest.ne{--k:#b8741a;border-color:var(--e);background:#fcf1e1;padding:8px 10px}
+  .side{font-size:12px;margin:7px 0 0;display:flex;align-items:center;gap:6px}
+  .key{display:grid;grid-template-columns:44px 1fr;gap:5px 8px;align-items:center;font-size:12px}
+  .hint{margin-top:auto;padding-top:8px;font-size:11.5px;color:var(--mute)}
+  /* diagram states */
+  .step{cursor:pointer;transition:opacity .15s}
+  .step .card{fill:var(--card);stroke:#b4bfcb;stroke-width:1.2;filter:drop-shadow(0 1.5px 2.5px rgba(30,50,70,.16))}
+  .step:hover .card{stroke:var(--ink2);stroke-width:1.8}
+  .step.sel .card{stroke:var(--ink);stroke-width:2.8;filter:drop-shadow(0 5px 10px rgba(30,50,70,.38))}
+  svg.pin .step:not(.sel){opacity:.38}
+  svg.pin .flow{opacity:.4}
+  .step.hl .card{stroke:var(--ink);stroke-width:2.2}
+  .step.cue .card{stroke-width:1.8;stroke-dasharray:7 5}
+  .step.cue:hover .card,.step.cue.hl .card{stroke-width:2.6}
+  svg.focus .step:not(.hl){opacity:.22}
+  svg.focus .flow{opacity:.25}
+  .t{fill:var(--ink);font-size:16px;font-weight:700}
+  .f{fill:var(--ink2);font-size:13px}
+  .numc{fill:#2f3a45}.numt{fill:#fff;font-size:11px;font-weight:700;text-anchor:middle}
+  .money{fill:#e8f4ea;stroke:var(--m)}
+  .moneyt{fill:var(--m);font-size:10px;font-weight:700;text-anchor:middle}
+  .proc{stroke:#5b6570;stroke-width:2;fill:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>CMG Financing Lifecycle</h1><span>PAMOJA Sub-Component 1.2 · v8 (rough cut) · click any step or label</span></header>
+
+  <div class="rail" id="railCom"><span class="rl">COM covers</span></div>
+
+  <div class="stage" id="stage" data-level="1">
+    <div class="shelf">
+      <button class="tab" data-go="1" style="--k:var(--p)"><b>1</b>PO-RALG · sets, funds and oversees</button>
+      <button class="tab" data-go="2" style="--k:var(--fi)"><b>2</b>FI · lends to CMGs</button>
+      <button class="tab" data-go="3" style="--k:var(--c)"><b>3</b>CMG · lends to women members</button>
+      <button class="full" data-go="full">full picture</button>
+    </div>
+    <div class="body" id="body">
+      <div class="rlab">1 · PO-RALG lends to the FI</div>
+      <svg id="dg1" viewBox="12 0 1046 518" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="ring r2">
+        <div class="rlab">2 · FI lends to CMGs</div>
+        <svg id="dg2" viewBox="12 0 1046 500" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="ring r3">
+          <div class="rlab">3 · CMG lends to women members</div>
+          <svg id="dg3" viewBox="12 0 1046 284" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rails-bottom">
+    <div class="rail" id="railPor" style="--rc:var(--p)"><span class="rl p"><i class="dot" style="background:var(--p)"></i>PO-RALG must</span></div>
+    <div class="rail" id="railLga" style="--rc:var(--l)"><span class="rl"><i class="dot" style="background:var(--l)"></i>Council must</span></div>
+    <div class="rail" id="railFi" style="--rc:var(--fi)"><span class="rl"><i class="dot" style="background:var(--fi)"></i>FI must</span></div>
+    <div class="rail" id="railCmg" style="--rc:var(--c)"><span class="rl"><i class="dot" style="background:var(--c)"></i>CMG must</span></div>
+    <div class="rail" id="railEnt" style="--rc:var(--e)"><span class="rl"><i class="dot" style="background:var(--e)"></i>Entrepreneur must</span></div>
+  </div>
+
+  <aside id="panel"></aside>
+</div>
+
+<script>
+const COL={P:'#1f4e79',L:'#4a8fd1',F:'#b8437f',C:'#1f9e89',E:'#e39b2d'};
+const NAME={P:'PO-RALG',L:'Council',F:'FI',C:'CMG',E:'Entrepreneur'};
+
+/* Three loops, one inside the next. A cue card opens the next loop in. */
+const LOOPS={
+ 1:{name:'PO-RALG → FI',col:COL.P,steps:[
+  {n:'1.1',x:20, y:10, t:['On-lending','agreement'],tabs:['P','F'],doc:1,note:'Signed up front',mk:['◆','FI obligations start'],
+   what:'PO-RALG signs an on-lending agreement with the FI, up front. The FI is then the lender to CMGs.',
+   open:'Who lends to the FI: PO-RALG or the council?'},
+  {n:'1.2',x:290,y:10, t:['Fund the FI'],owners:['P','L'],money:['PO-RALG','Council','FI'],note:'The Director pays the FI',
+   what:'PO-RALG allocates funds to the council. The council’s Director pays the FI.',
+   open:'One transfer per round, or instalments?'},
+  {n:'1.3',x:830,y:10, t:['Report'],owners:['F'],note:'Monthly, quarterly, annually',mk:['◆','FI reports while it lends'],
+   what:'The FI reports monthly, quarterly and annually. It is paid from its interest share; there are no management fees.',
+   open:'The FI has “primary responsibility” for monitoring, and nine other bodies also monitor. Who escalates to whom?'},
+  {n:'1.4',x:830,y:330,t:['Repay'],owners:['F'],money:['FI','Pamoja fund'],note:'Via account B, on schedule',
+   what:'The FI repays on schedule, via account B (the council’s collection account) into the Pamoja fund.',
+   open:'PO-RALG’s role in repayment is an open item. What happens to money in the Pamoja fund: relend or loss?'},
+  {n:'1.5',x:560,y:330,t:['Share the loss'],owners:['P','F'],note:'By an agreed share',mk:['⚖','If a CMG does not repay'],
+   what:'If a CMG does not repay and the FI cannot recover the loan (2.7), the loss is split by an agreed share. The Pamoja fund is protected.',
+   open:'The share each party carries is to be agreed.'}],
+  cue:{x:560,y:10,to:2,t:['FI lends','to CMGs'],who:['F','C'],
+   what:'Between Fund the FI (1.2) and Report (1.3), the FI lends the funds on to CMGs. The council checks and shortlists; the FI decides, contracts, pays out, collects and recovers.'}},
+ 2:{name:'FI → CMG',col:COL.F,steps:[
+  {n:'2.1',x:20, y:10, t:['Apply'],owners:['C'],note:'In Wezesha, with the amount',
+   what:'The CMG applies in Wezesha, stating the amount it needs.'},
+  {n:'2.2',x:290,y:10, t:['Check'],owners:['L'],note:'Ward, then council',
+   what:'The ward and the council check the application and recommend. The Director submits the list to the CMT.',
+   open:'Accuracy is checked four times: ward CDO, head of CD, the council and the FI. Does each check look for something different?'},
+  {n:'2.3',x:560,y:10, t:['Decide'],owners:['L','F'],note:'Council shortlists; FI decides',
+   what:'The CMT endorses a shortlist. The FI appraises the shortlisted CMGs and decides the amount, or rejects with reasons. The FI’s decision is final.',
+   open:'Not found: a time limit for the FI’s review, and whether a CMG can appeal if the FI declines.'},
+  {n:'2.4',x:830,y:10, t:['Contract'],tabs:['F','C'],doc:1,note:'The FI is the lender',mk:['◆','CMG obligations start'],
+   what:'The FI signs its own loan contract with each CMG, as the lender.'},
+  {n:'2.5',x:830,y:330,t:['Pay out'],owners:['F'],money:['FI','CMG'],note:'From the FI’s own books',
+   what:'The FI pays the CMG from its own books, once the Director has paid the FI (1.2).',
+   open:'The time limit for the FI to lend after it receives the funds.'},
+  {n:'2.6',x:290,y:330,t:['Repay'],owners:['C'],money:['CMG','FI'],mk:['◆','CMG obligations end'],
+   what:'The CMG repays the FI in the FI’s own system, not through a GePG control number. The FI then repays into the Pamoja fund (1.4).'},
+  {n:'2.7',x:20, y:330,t:['If not repaid'],owners:['F'],note:'Under the FI’s own rules',mk:['⚖','FI leads recovery'],
+   what:'If a CMG does not repay, the FI leads recovery under its own rules. A loss is then split by an agreed share (1.5).',
+   open:'Not found: a definition of default (days past due), and when collection becomes recovery.'}],
+  cue:{x:560,y:330,to:3,t:['CMG lends to','women members'],who:['C','E'],
+   what:'Between Pay out (2.5) and Repay (2.6), the CMG lends the funds on to its women members. The CMG re-lends repayments to new Subprojects, and repays the FI at 2.6.'}},
+ 3:{name:'CMG → member',col:COL.C,steps:[
+  {n:'3.1',x:20, y:44,t:['Subproject','selected'],owners:['C'],note:'A woman member’s idea',
+   what:'The CMG selects a woman member’s eligible productive Subproject.'},
+  {n:'3.2',x:290,y:44,t:['Microfinancing','Agreement'],tabs:['C','E'],doc:1,mk:['◆','Ent. obligations start'],
+   what:'CMG and entrepreneur sign: amount, currency, charges, repayment schedule, and the CMG’s remedies on default.'},
+  {n:'3.3',x:560,y:44,t:['Lend · Monitor','· Report'],owners:['C','E'],money:['CMG','Entrepreneur'],mk:['◆','Both monitor & report'],
+   what:'The CMG disburses the loan; both track and report Subproject progress.'},
+  {n:'3.4',x:830,y:44,t:['Repayment'],owners:['E'],money:['Entrepreneur','CMG'],mk:['⚖','CMG enforces if default'],
+   what:'The entrepreneur repays; the CMG re-lends repayments to new Subprojects, and repays the FI (2.6).'}]}
+};
+const BYN={};Object.values(LOOPS).forEach(L=>L.steps.forEach(s=>BYN[s.n]=s));
+const ALL=Object.keys(BYN);
+const loopOf=n=>+n[0];
+const title=s=>s.t.join(' ').replace('· ·','·');
+
+const RAILS={
+ railCom:[
+  ['a','Structure','Who is in charge of what','Roles, responsibilities and decision-making for selecting, monitoring and evaluating CMGs and their Subprojects.',ALL],
+  ['b','Entry','Which CMGs qualify and how they are chosen','Eligibility (incl. minimum institutional requirements), prioritisation, application and selection procedures.',['2.1','2.2','2.3']],
+  ['c','Lending terms','Limits, repayment and charges','Single borrower limits, repayment schedules, charges.',['2.4','3.2']],
+  ['d','Money flow','How funds move, and the agreement for each transfer','Flow of funds to the CMG, now through the council and the FI; agreement templates; approval and signing protocol.',['1.1','1.2','2.4','2.5']],
+  ['e','Use of funds','Who and what CMGs may finance','Beneficiary and Subproject eligibility, negative list, social and environmental restrictions — on top of the CMG’s own rules.',['3.1']],
+  ['f','Accountability','How CMGs keep accounts and report','Financial management requirements, including regular reporting to DITs.',['3.3']],
+  ['g','Safeguards','CMGs’ environmental and social duties','Obligations under the M-ESCP and ancillary documents.',['3.1','3.3']]
+ ],
+ railPor:[
+  ['','Adopt COM','Prepare and adopt the rulebook','The COM sets structure, entry, lending terms, fund flow, use of funds, accountability and safeguards.',ALL],
+  ['','Sign & fund','Sign the on-lending agreement and allocate funds','On-lending agreement with the FI, up front; funds allocated to the council, whose Director pays the FI.',['1.1','1.2']],
+  ['','Oversee','Receive reports, inspect, request information','FI reports monthly, quarterly and annually; via DITs, regular CMG reporting; right to inspect records and request information.',['1.3','3.3','3.4']],
+  ['','Ensure enforcement','Make sure CMGs use their rights','Require and ensure each CMG enforces its Microfinancing Agreements to protect the funds.',['3.4']],
+  ['','Receive repayments','Repayments return to the Pamoja fund','Via account B into the Pamoja fund at Bank of Tanzania. Whether the fund relends is still to settle.',['1.4']],
+  ['','Share losses','Carry an agreed share of any loss','The Pamoja fund is protected; the split is still to be agreed.',['1.5']]
+ ],
+ railLga:[
+  ['','Pay the FI','The Director pays the FI','From the funds PO-RALG allocates to the council.',['1.2']],
+  ['','Check','Check each application and recommend','Ward CDO checks and the ward credit committee visits the CMG; head of CD checks and the council credit committee recommends.',['2.2']],
+  ['','Shortlist','Put forward a shortlist','The Director submits the list; the DCRC advises; the CMT endorses a shortlist for the FI. A shortlist, not an approval.',['2.2','2.3']]
+ ],
+ railFi:[
+  ['','Contract','Sign the on-lending agreement, and its own loan contract with each CMG','It is the lender to the CMG.',['1.1','2.4']],
+  ['','Report','Report monthly, quarterly and annually','Paid from its interest share; no management fees.',['1.3']],
+  ['','Repay','Repay on schedule','Via account B into the Pamoja fund. PO-RALG’s role here is an open item.',['1.4']],
+  ['','Decide','Appraise and decide the amount','Appraises the shortlisted CMGs; decides the amount, or rejects with reasons. Its decision is final.',['2.3']],
+  ['','Pay out','Pay the CMG from its own books','After the Director pays the FI.',['2.5']],
+  ['','Collect','Collect repayments in its own system','The CMG repays the FI in the FI’s system, not through a GePG control number.',['2.6']],
+  ['','Recover','Lead recovery if a CMG does not repay','Under its own rules. A loss is split by an agreed share.',['2.7','1.5']]
+ ],
+ railCmg:[
+  ['','Apply','Apply in Wezesha','State the amount the CMG needs.',['2.1']],
+  ['','Lend','Only to women members, only for eligible Subprojects','On reasonable terms acceptable to PO-RALG.',['3.1','3.2','3.3']],
+  ['','Manage','Handle the funds honestly and well','Due diligence; Anti-Corruption Guidelines; add own resources if needed.',['2.4','2.5','2.6','3.1','3.2','3.3','3.4']],
+  ['','Monitor','Track members’ Subprojects','Policies and procedures to monitor and evaluate progress.',['3.3']],
+  ['','Account','Account for every shilling','Financial management system and financial statements for the funds received.',['2.6','3.3']],
+  ['','Allow inspection','Records open, information on request','Allow inspection of operations and records; provide information reasonably requested.',['2.4','2.5','2.6','2.7','3.1','3.2','3.3','3.4']],
+  ['','Enforce','Protect the funds under each agreement','Use its rights on default; never assign, amend or waive standard terms.',['3.4']],
+  ['','Repay','Repay the FI as agreed','In the FI’s own system, per the loan contract. Members are jointly liable.',['2.6']]
+ ],
+ railEnt:[
+  ['','Deliver','Carry out the Subproject properly','Due diligence; Anti-Corruption Guidelines; add own resources if needed.',['3.3']],
+  ['','Monitor','Track own Subproject progress','Regular monitoring and evaluation.',['3.3']],
+  ['','Account','Keep accounts','Financial statements on CMG request.',['3.3']],
+  ['','Allow inspection','Records open, information on request','Allow inspection by PO-RALG and the CMG; provide information on request.',['3.3','3.4']],
+  ['','Repay','Repay as agreed','Per the amount, charges and schedule in the Microfinancing Agreement.',['3.4']]
+ ]
+};
+const RAILNAME={railCom:'COM area',railPor:'PO-RALG obligation',railLga:'Council role · proposed FI-led model',railFi:'FI role · proposed FI-led model',railCmg:'CMG obligation',railEnt:'Entrepreneur obligation'};
+
+/* ---------- build SVGs ---------- */
+const stage=document.getElementById('stage');
+const SVG={1:document.getElementById('dg1'),2:document.getElementById('dg2'),3:document.getElementById('dg3')};
+const mark=(id,fill)=>`<marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${fill}"/></marker>`;
+const defs=k=>`<defs>${mark('ah'+k,'#5b6570')}${mark('ahE'+k,'#8a2d2d')}${mark('ahL'+k,LOOPS[k].col)}</defs>`;
+const doc=(x,y)=>`<g transform="translate(${x},${y})"><rect width="16" height="20" rx="2" fill="#fff" stroke="#2f3a45"/><path d="M4 6H12M4 10H12M4 14H10" stroke="#2f3a45"/></g>`;
+const proc=(k,x1,y1,x2,y2)=>`<line class="proc" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" marker-end="url(#ah${k})"/>`;
+const fail=(k,x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8a2d2d" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#ahE${k})"/>`;
+const card=s=>{
+  const {x,y}=s, w=220, tab=s.tabs?14:0;
+  let g=`<g class="step" data-n="${s.n}" tabindex="0"><rect class="card" x="${x}" y="${y}" width="${w}" height="160" rx="10"/>`;
+  if(s.tabs){
+    g+=`<path d="M${x+10} ${y}H${x+14}V${y+160}H${x+10}A10 10 0 0 1 ${x} ${y+150}V${y+10}A10 10 0 0 1 ${x+10} ${y}Z" fill="${COL[s.tabs[0]]}"/>`;
+    g+=`<path d="M${x+w-10} ${y}H${x+w-14}V${y+160}H${x+w-10}A10 10 0 0 0 ${x+w} ${y+150}V${y+10}A10 10 0 0 0 ${x+w-10} ${y}Z" fill="${COL[s.tabs[1]]}"/>`;
+  }
+  const cx=x+22+tab;
+  g+=`<circle class="numc" cx="${cx}" cy="${y+24}" r="13"/><text class="numt" x="${cx}" y="${y+28}">${s.n}</text>`;
+  s.t.forEach((l,i)=>g+=`<text class="t" x="${cx+22}" y="${y+30+i*24}">${l}</text>`);
+  if(s.doc) g+=doc(x+w-40,y+12);
+  (s.owners||[]).slice().reverse().forEach((o,i)=>g+=`<circle cx="${x+w-18-i*18}" cy="${y+22}" r="7" fill="${COL[o]}"/>`);
+  g+=`<line x1="${x+12+tab}" y1="${y+80}" x2="${x+w-12-tab}" y2="${y+80}" stroke="#e3e8ee"/>`;
+  let ry=y+104, lx=x+14+tab;
+  if(s.money){g+=`<rect class="money" x="${lx}" y="${ry-13}" width="36" height="18" rx="9"/><text class="moneyt" x="${lx+18}" y="${ry}">TZS</text><text class="f" x="${lx+44}" y="${ry}">${s.money.join(' → ')}</text>`;ry+=26;}
+  if(s.note){g+=`<text class="f" x="${lx}" y="${ry}">${s.note}</text>`;ry+=26;}
+  if(s.mk){g+=`<text x="${lx}" y="${ry}" font-size="${s.mk[0]=='⚖'?15:14}" fill="${s.mk[0]=='⚖'?'#8a2d2d':'#6a3fa0'}">${s.mk[0]}</text><text class="f" x="${lx+18}" y="${ry}">${s.mk[1]}</text>`;ry+=26;}
+  return g+'</g>';
+};
+/* cue: a step-sized dashed card, in the colour of the loop it opens */
+const cueCard=k=>{
+  const c=LOOPS[k].cue, col=LOOPS[c.to].col, {x,y}=c, n=LOOPS[c.to].steps.length;
+  let g=`<g class="step cue" data-n="cue${c.to}" tabindex="0" role="button" aria-label="Open loop ${c.to}: ${c.t.join(' ')}">
+   <rect class="card" x="${x}" y="${y}" width="220" height="160" rx="10" style="stroke:${col};fill:${c.to===2?'#fbf4f8':'#f0f9f7'}"/>
+   <text x="${x+14}" y="${y+33}" font-size="22" font-weight="700" fill="${col}">↻</text>`;
+  c.t.forEach((l,i)=>g+=`<text x="${x+44}" y="${y+30+i*24}" font-size="16" font-weight="700" fill="${col}">${l}</text>`);
+  c.who.slice().reverse().forEach((o,i)=>g+=`<circle cx="${x+202-i*18}" cy="${y+22}" r="7" fill="${COL[o]}"/>`);
+  g+=`<line x1="${x+12}" y1="${y+80}" x2="${x+208}" y2="${y+80}" stroke="${col}" stroke-opacity=".3"/>
+   <text class="f" x="${x+14}" y="${y+104}">Loop ${c.to} · ${n} steps inside</text>
+   <text x="${x+14}" y="${y+130}" font-size="13" font-weight="600" fill="${col}">Click to open ›</text></g>`;
+  return g;
+};
+
+SVG[1].innerHTML=defs(1)+`<g class="flow">
+ ${proc(1,240,90,288,90)}${proc(1,510,90,558,90)}${proc(1,780,90,828,90)}${proc(1,940,170,940,328)}
+ ${fail(1,830,410,782,410)}
+ <path d="M940 490V506H400V172" stroke="${COL.P}" stroke-width="2.2" stroke-dasharray="7 5" fill="none" marker-end="url(#ahL1)"/>
+ <text x="412" y="246" font-size="13" font-weight="600" fill="${COL.P}">↻ Repayments return to the Pamoja fund</text>
+ <text x="412" y="264" class="f">relend or loss? still to settle</text>
+</g>`+cueCard(1)+LOOPS[1].steps.map(card).join('');
+
+SVG[2].innerHTML=defs(2)+`<g class="flow">
+ ${proc(2,240,90,288,90)}${proc(2,510,90,558,90)}${proc(2,780,90,828,90)}${proc(2,940,170,940,328)}
+ ${proc(2,830,410,782,410)}${proc(2,560,410,512,410)}
+ ${fail(2,290,410,242,410)}
+ <text class="f" x="20" y="246">From 1.2 · Fund the FI: the FI has the funds</text>
+ <text class="f" x="20" y="264">The FI repays the Pamoja fund from repayments → 1.4 · Repay</text>
+</g>`+cueCard(2)+LOOPS[2].steps.map(card).join('');
+
+SVG[3].innerHTML=defs(3)+`<g class="flow">
+ <text class="f" x="20" y="26">From 2.5 · Pay out: the CMG has the funds</text>
+ <text class="f" x="1050" y="26" text-anchor="end">The CMG repays the FI from repayments → 2.6 · Repay</text>
+ ${proc(3,240,124,288,124)}${proc(3,510,124,558,124)}${proc(3,780,124,828,124)}
+ <path d="M940 204V248H130V206" stroke="${COL.C}" stroke-width="2.2" stroke-dasharray="7 5" fill="none" marker-end="url(#ahL3)"/>
+ <text x="150" y="270" font-size="13" font-weight="600" fill="${COL.C}">↻ CMG re-lends repayments</text>
+ <text x="336" y="270" class="f">new Subproject + new agreement</text>
+</g>`+LOOPS[3].steps.map(card).join('');
+
+/* ---------- rails ---------- */
+Object.entries(RAILS).forEach(([id,list])=>{
+  const el=document.getElementById(id);
+  list.forEach((r,i)=>{const b=document.createElement('button');b.className='chip'+(id==='railPor'?' p':'');b.dataset.rail=id;b.dataset.i=i;
+    b.innerHTML=(r[0]?`<b>${r[0]}</b>`:'')+r[1];el.appendChild(b);});
+});
+
+/* ---------- panel ---------- */
+const panel=document.getElementById('panel');
+const who=arr=>`<div class="who">${arr.map(o=>`<span><i class="dot" style="background:${COL[o]}"></i>${NAME[o]}</span>`).join('')}</div>`;
+function legend(){
+  panel.innerHTML=`<h2>How to read this</h2><div class="sub">Three loans, one inside the next. Peel one loop at a time.</div>
+  <div class="nest np">PO-RALG <small>lends to the FI · loop 1</small><div class="nest nf">FI <small>lends to the CMG · loop 2</small><div class="nest nc">CMG <small>lends to members · loop 3</small><div class="nest ne">Woman entrepreneur</div></div></div></div>
+  <div class="side"><i class="dot" style="background:${COL.L}"></i>Council — checks, shortlists, pays the FI</div>
+  <h4>Key</h4><div class="key">
+   <svg width="40" height="22"><rect x="2" y="2" width="36" height="18" rx="4" fill="#fbf4f8" stroke="${COL.F}" stroke-width="1.5" stroke-dasharray="4 3"/></svg><span>↻ Next loop in — click to open</span>
+   <svg width="40" height="22"><rect x="1" y="1" width="38" height="20" rx="4" fill="#fff" stroke="#c9d1da"/><rect x="1" y="1" width="5" height="20" fill="${COL.F}"/><rect x="34" y="1" width="5" height="20" fill="${COL.C}"/></svg><span>Side tabs — two parties to an agreement</span>
+   <svg width="40" height="16"><circle cx="10" cy="8" r="6" fill="${COL.L}"/><circle cx="26" cy="8" r="6" fill="${COL.F}"/></svg><span>Badges — who carries out the step</span>
+   <svg width="40" height="22">${doc(12,1)}</svg><span>Written agreement signed</span>
+   <svg width="40" height="18"><rect x="1" y="1" width="36" height="16" rx="8" fill="#e8f4ea" stroke="#2e7d32"/><text x="19" y="13" font-size="9.5" font-weight="700" fill="#2e7d32" text-anchor="middle">TZS</text></svg><span>Money moves (from → to)</span>
+   <span style="color:#6a3fa0;font-size:15px;text-align:center">◆</span><span>Obligations start / apply / end</span>
+   <span style="color:#8a2d2d;font-size:15px;text-align:center">⚖</span><span>Enforcement</span>
+   <svg width="40" height="10"><path d="M2 5H34" stroke="#8a2d2d" stroke-width="2" stroke-dasharray="5 4"/></svg><span>If the loan is not repaid</span>
+   <svg width="40" height="10"><path d="M2 5H34" stroke="${COL.C}" stroke-width="2" stroke-dasharray="5 4"/></svg><span>↻ Revolving funds</span>
+  </div><div class="hint">Click a step or a label to see what applies. The numbered tabs move between loops. Esc steps back out.</div>`;
+}
+const lbl=r=>`${r[0]?r[0]+' · ':''}${r[1]}`;
+function showStep(s){
+  const parts=s.tabs||s.owners;
+  const pick=id=>RAILS[id].filter(r=>r[4]!==ALL&&r[4].includes(s.n)).map(r=>`<span class="tag">${lbl(r)}</span>`).join('');
+  const grp=(id,title)=>{const t=pick(id);return t?`<h4>${title}</h4><div class="tags">${t}</div>`:'';};
+  panel.innerHTML=`<h2>${s.n} · ${title(s)}</h2><div class="sub">Loop ${loopOf(s.n)} · ${LOOPS[loopOf(s.n)].name}</div>${who(parts)}
+   <p>${s.what}</p>
+   ${s.money?`<h4>Money</h4><p>TZS: ${s.money.join(' → ')}</p>`:''}
+   ${s.open?`<h4>Still to settle</h4><p class="open">${s.open}</p>`:''}
+   <h4>COM areas</h4><div class="tags">${pick('railCom')||'<span class="tag">—</span>'}</div>
+   ${grp('railPor','PO-RALG obligations in play')}${grp('railLga','Council role in play')}${grp('railFi','FI role in play')}
+   ${grp('railCmg','CMG obligations in play')}${grp('railEnt','Entrepreneur obligations in play')}
+   <div class="hint">Always in play: COM a · Structure; PO-RALG · Adopt COM.</div>`;
+}
+function showCue(k){
+  const c=LOOPS[k-1].cue, L=LOOPS[k];
+  panel.innerHTML=`<h2>Loop ${k}: ${c.t.join(' ')}</h2><div class="sub">${L.name} · inside loop ${k-1}</div>${who(c.who)}
+   <p>${c.what}</p>
+   <h4>Steps inside</h4><div class="tags">${L.steps.map(s=>`<span class="tag">${s.n} · ${title(s)}</span>`).join('')}</div>
+   ${L.cue?`<h4>And inside that</h4><div class="tags"><span class="tag">Loop ${L.cue.to} · ${L.cue.t.join(' ')}</span></div>`:''}
+   <div class="hint">Click to open loop ${k}. Esc steps back out.</div>`;
+}
+function showChip(id,r){
+  const loops=[...new Set(r[4].map(loopOf))].sort();
+  panel.innerHTML=`<h2>${r[0]?r[0]+'. ':''}${r[1]}</h2><div class="sub">${RAILNAME[id]}</div>
+   <p><b>${r[2]}</b></p><p>${r[3]}</p>
+   <h4>Applies at steps</h4><div class="tags">${r[4]===ALL?'<span class="tag">All steps, all loops</span>':r[4].map(n=>`<span class="tag">${n} · ${title(BYN[n])}</span>`).join('')}</div>
+   ${r[4]!==ALL?`<div class="hint">In loop ${loops.join(' and ')}. The underlined loop tabs show where.</div>`:''}`;
+}
+
+/* ---------- interaction ---------- */
+let pinned=null, level=1, prev=1;
+const same=(a,b)=>a&&b&&a.type===b.type&&a.n===b.n&&a.rail===b.rail&&a.i===b.i;
+const steps=[...document.querySelectorAll('.step')];
+const stepEl=n=>document.querySelector(`.step[data-n="${n}"]`);
+const lps=[...document.querySelectorAll('.tab')], fullBtn=document.querySelector('.full');
+const app=document.querySelector('.app'), body=document.getElementById('body');
+function clear(){Object.values(SVG).forEach(s=>s.classList.remove('focus','pin'));steps.forEach(g=>g.classList.remove('hl','sel'));
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on','rel'));lps.forEach(b=>b.classList.remove('has'));app.classList.remove('pin');}
+function apply(sel){
+  clear();
+  if(!sel){legend();return;}
+  if(sel.type==='step'){
+    stepEl(sel.n).classList.add('sel');
+    if(sel.n.startsWith('cue')){showCue(+sel.n[3]);return;}
+    showStep(BYN[sel.n]);
+    /* light up, in the top and bottom rows, the labels the side panel lists for this step */
+    document.querySelectorAll('.chip').forEach(c=>{const r=RAILS[c.dataset.rail][c.dataset.i];
+      c.classList.toggle('rel',r[4]!==ALL&&r[4].includes(sel.n));});
+    /* a clicked step stands out: the rest of the loop and the other labels fade */
+    if(same(pinned,sel)){SVG[loopOf(sel.n)].classList.add('pin');app.classList.add('pin');}
+  } else {
+    const r=RAILS[sel.rail][sel.i], inLoop=k=>r[4].some(n=>loopOf(n)===k);
+    Object.values(SVG).forEach(s=>s.classList.add('focus'));
+    r[4].forEach(n=>stepEl(n).classList.add('hl'));
+    /* a cue lights up when the label applies further in */
+    if(inLoop(2)||inLoop(3)) stepEl('cue2').classList.add('hl');
+    if(inLoop(3)) stepEl('cue3').classList.add('hl');
+    lps.forEach(b=>b.classList.toggle('has',inLoop(+b.dataset.go)));
+    document.querySelector(`.chip[data-rail="${sel.rail}"][data-i="${sel.i}"]`).classList.add('on');showChip(sel.rail,r);
+  }
+}
+function go(l){
+  if(l!=='full') l=+l;
+  if(level!=='full') prev=level;
+  level=l; stage.dataset.level=l; body.scrollTop=0;
+  lps.forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.go===l)));
+  fullBtn.setAttribute('aria-pressed',String(l==='full'));
+  pinned=null;apply(null);
+}
+function toggle(sel){pinned=same(pinned,sel)?null:sel;apply(pinned);}
+steps.forEach(g=>{const n=g.dataset.n, act=n.startsWith('cue')?()=>go(n[3]):()=>toggle({type:'step',n});
+  g.addEventListener('click',e=>{e.stopPropagation();act();});
+  g.addEventListener('mouseenter',()=>{if(!pinned)apply({type:'step',n});});
+  g.addEventListener('mouseleave',()=>{if(!pinned)apply(null);});
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopPropagation();act();}});
+});
+document.querySelectorAll('.chip').forEach(c=>{const sel={type:'chip',rail:c.dataset.rail,i:+c.dataset.i};
+  c.addEventListener('click',e=>{e.stopPropagation();toggle(sel);});
+  c.addEventListener('mouseenter',()=>{if(!pinned)apply(sel);});
+  c.addEventListener('mouseleave',()=>{if(!pinned)apply(null);});
+});
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();
+  go(b.dataset.go==='full'&&level==='full'?prev:b.dataset.go);}));
+document.addEventListener('click',()=>{pinned=null;apply(null);});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
+  if(pinned){pinned=null;apply(null);} else if(level==='full') go(prev); else if(level>1) go(level-1);});
+go(1);
+</script>
+</body>
+</html>
